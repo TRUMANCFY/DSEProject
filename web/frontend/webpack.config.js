@@ -3,7 +3,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
     mode: 'development',
     resolve: {
-        extensions: ['.js', '.vue']
+        extensions: ['.js', '.vue', '.png']
     },
     module: {
         rules: [
@@ -16,6 +16,16 @@ module.exports = {
                 test: /\.js?$/,
                 exclude: /(node_modules)/,
                 use: 'babel-loader'
+            },
+            {
+                test: /\.png?$/,
+                exclude: /(node_modules)/,
+                use: {
+                    loader: 'url-loader',
+                    options: {
+                        limit: 10240000000,
+                    },
+                },
             }
         ]
     },

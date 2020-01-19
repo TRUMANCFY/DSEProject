@@ -19,28 +19,12 @@ from flask_mail import Message
 app = Flask(__name__)
 CORS(app)
 
-mail = Mail(app)
-
-app.config.update(dict(
-    DEBUG = True,
-    MAIL_SERVER = 'smtp.gmail.com',
-    MAIL_PORT = 587,
-    MAIL_USE_TLS = True,
-    MAIL_USE_SSL = False,
-    MAIL_USERNAME = 'caifengyutruman@gmail.com',
-    MAIL_PASSWORD = 'caifengyu22',
-    DEFAULT_MAIL_SENDER= 'caifengyutruman@gmail.com',
-))
-
-mail = Mail(app)
-
-
-def sendConfirmation(user):
-    msg = Message("Hello from Fengyu",
-                  sender="caifengyutruman@gmail.com",
-                  recipients=[user['email']])
-    with app.app_context():
-        mail.send(msg)
+# def sendConfirmation(user):
+#     msg = Message("Hello from Fengyu",
+#                   sender="caifengyutruman@gmail.com",
+#                   recipients=[user['email']])
+#     with app.app_context():
+#         mail.send(msg)
 
 @app.route('/users/authenticate', methods=['POST'])
 def authenticate():
@@ -63,6 +47,7 @@ def authenticate():
                 res['username'] = dbUser['username']
                 res['firstName'] = dbUser['firstName']
                 res['lastName'] = dbUser['lastName']
+                res['email'] = dbUser['email']
                 res['token'] = 'random'
                 res = json.dumps(res)
                 return Response(res, status=200)
@@ -96,7 +81,7 @@ def register():
         else:
             registerInfo['id'] = len(db)
             db.insert(registerInfo)
-            sendConfirmation(registerInfo)
+            # sendConfirmation(registerInfo)
             return Response(status=200)
 
     return Response(status=404)

@@ -5,6 +5,10 @@ import { store } from './_store';
 import { router } from './_helpers';
 import App from './app/App';
 
+import { BootstrapVue } from 'bootstrap-vue'
+
+Vue.use(BootstrapVue)
+
 Vue.use(VeeValidate);
 
 // setup fake backend
