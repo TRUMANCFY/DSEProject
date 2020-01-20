@@ -5,6 +5,8 @@ import HomePage from '../home/HomePage'
 import LoginPage from '../login/LoginPage'
 import RegisterPage from '../register/RegisterPage'
 import UserProfilePage from '../userProfile/userProfile'
+import VotePage from '../userProfile/participatePoll'
+import CreateVotePage from '../userProfile/createPoll'
 
 
 Vue.use(Router);
@@ -17,6 +19,8 @@ export const router = new Router({
     { path: '/register', component: RegisterPage },
     { path: '/users', component: UserProfilePage},
     { path: '/users/:id', component: UserProfilePage},
+    { path: '/vote', component: VotePage},
+    { path: '/create', component: CreateVotePage},
 
     // otherwise redirect to home
     { path: '*', redirect: '/' }

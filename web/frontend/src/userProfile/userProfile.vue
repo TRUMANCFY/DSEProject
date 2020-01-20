@@ -25,11 +25,11 @@
 
         <div id='poll'>
             <div id='createPoll'>
-                <button class="btn btn-primary" :disabled="status.registering">Register</button>
+                <button class="btn btn-primary" @click="goVote">Go to vote</button>
             </div>
 
             <div id='paticipatePoll'>
-                <button class="btn btn-primary" :disabled="status.registering">Register</button>
+                <button class="btn btn-primary">Register</button>
             </div>
         </div>
     </div>
@@ -54,6 +54,9 @@ export default {
         ...mapActions('account', ['register']),
         getImage: function() {
             return this.registeredImage
+        },
+        goVote: function() {
+            this.$router.push('/vote')
         }
     },
     mounted: function() {
