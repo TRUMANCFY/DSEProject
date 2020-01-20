@@ -1,7 +1,10 @@
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+require("babel-polyfill");
+const path = require('path');
 
 module.exports = {
     mode: 'development',
+    entry: ["babel-polyfill", path.resolve(__dirname, "src/index.js")],
     resolve: {
         extensions: ['.js', '.vue', '.png']
     },

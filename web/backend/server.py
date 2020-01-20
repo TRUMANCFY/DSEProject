@@ -13,6 +13,7 @@ from flask_mail import Mail
 # database import
 from tinydb import TinyDB, where, Query
 db = TinyDB('users.json')
+electiondb = TinyDB('election.json')
 
 from flask_mail import Message
 
@@ -53,6 +54,30 @@ def authenticate():
                 return Response(res, status=200)
             else:
                 return Response(status=404)
+    
+    return Response(status=404)
+
+@app.route('/createElection', methods=['POST'])
+def createPoll():
+    if request.method == 'POST':
+        poll = json.loads(request.data)
+        pollName = poll['name']
+
+        if electiondb.contains(where('name') == pollName):
+            return Response(status=404)
+        else:
+            electiondb.insert(poll)
+            return Response('success', status=200)
+    return Response(status=404)
+
+
+@app.route('/getElection', methods=['GET'])
+def getElection():
+    if request.method == 'GET':
+        elections = electiondb.all()
+        res = json.dumps(elections)
+
+        return Response(res, mimetype='application/json')
     
     return Response(status=404)
 

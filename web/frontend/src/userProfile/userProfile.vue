@@ -24,19 +24,19 @@
         </div>
 
         <div id='poll'>
-            <div id='createPoll'>
-                <button class="btn btn-primary" @click="goVote">Go to vote</button>
-            </div>
+            <button class="btn btn-primary" @click="goVote">Go to vote</button>
+            <button class="btn btn-primary" @click='createElection' style='margin-left: 20px;'> Create an election </button>
+        </div>
 
-            <div id='paticipatePoll'>
-                <button class="btn btn-primary">Register</button>
-            </div>
+        <div class='form-group' style='margin-top: 10px;'>
+            <b-form-select v-model="selected" :options="elections" :select-size="6" style='width: 30%;'></b-form-select>
         </div>
     </div>
 </template>
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import config from 'config'
 
 // import image
 import registeredImage from '../assets/registeredUser.png'
@@ -45,6 +45,8 @@ export default {
     data () {
         return {
             registeredImage: registeredImage,
+            elections: [],
+            selected: null,
         }
     },
     computed: {
@@ -56,7 +58,49 @@ export default {
             return this.registeredImage
         },
         goVote: function() {
-            this.$router.push('/vote')
+            var self = this;
+
+            // check the box
+            if (self.selected == null) {
+                alert('Please select one election')
+                return
+            }
+            var election = {}
+
+            self.elections.map(e => {
+                if (e['name'] == self.selected) {
+                    election = e;
+                }
+            })
+
+            this.$router.push({ name: 'vote', path: '/vote', params: { questions: election }})
+        },
+        getElection: async function() {
+            var self = this;
+
+            var newElections = await fetch(`${config.apiUrl}/getElection`, {method: 'GET', mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    var tmp = res.json();
+                    return tmp;
+                }
+            });
+
+            if (newElections.length != self.elections.length) {
+                self.elections = newElections;
+                
+                self.elections.forEach(element => {
+                    element['text'] = element['name'];
+                    element['value'] = element['name'];
+                });
+            }
+
+            // self.elections.forEach(element => {
+            //     element['text'] = element['name'];
+            // });
+        },
+        createElection: function() {
+            this.$router.push('/create')
         }
     },
     mounted: function() {
@@ -65,6 +109,8 @@ export default {
         if (this.user == null) {
             this.$router.push('/login')
         }
+
+        setInterval(this.getElection, 100)
     }
 };
 </script>

@@ -1,5 +1,19 @@
 <template>
     <div>
+        <div id='electionBox'>
+            <label> Election Name </label>
+            <b-form-input
+            v-model="electionName"
+            placeholder="Election Name"
+            trim
+            ></b-form-input>
+            <label> Election Description </label>
+            <b-form-input
+            v-model="electionDescription"
+            placeholder="Election Description"
+            trim
+            ></b-form-input>
+        </div>
         <div id='questionBox'>
             <div id='question'>
                 <label for="input-live">Question List:</label>
@@ -13,7 +27,7 @@
             <div id='submitButton'>
                 <button class='btn btn-primary' @click="addChoice">Add Choice</button>
                 <button class='btn btn-primary' @click="submitQuestion">Submit Question</button>
-                <button class='btn btn-primary' @click="submitQuestion">Submit Election</button>
+                <button class='btn btn-primary' @click="submitElection">Submit Election</button>
             </div>
         </div>
         <div id='question'>
@@ -38,6 +52,7 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import config from 'config'
 
 export default {
     data () {
@@ -46,6 +61,8 @@ export default {
             choices: [''],
             questionText: '',
             questionList: [],
+            electionName: '',
+            electionDescription: '',
         }
     },
     computed: {
@@ -75,6 +92,52 @@ export default {
             self.question = ''
 
             self.choices = ['']
+        },
+        submitElection: async function() {
+            var self = this;
+
+            console.log(self.questionList)
+
+            var electionOptions = {
+                name: self.electionName,
+                description: self.electionDescription,
+                questions: self.questionList,
+                creator: this.user.id,
+            }
+
+            var payload = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify(electionOptions),
+            };
+
+            var a = await fetch(`${config.apiUrl}/createElection`, payload)
+            .then(res => {
+                    if (res.ok) {
+                        return '';
+                    }
+            })
+
+            // var qaMap = {}
+            // self.questionList.forEach(element => {
+            //     qaMap
+            // });
+            // // we need to generate new payload for the api
+            // var electionOptionApi = {
+            //     name: self.electionName,
+            //     description: self.electionDescription,
+            //     questions: 
+            // }
+
+            var b = await fetch('/createElection', payload)
+            .then(res => {
+                if (res.ok) {
+                    return ''
+                }
+            })
+
+            confirm('The election has been created!')
         }
     },
     mounted: function() {

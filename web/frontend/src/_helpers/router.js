@@ -19,7 +19,7 @@ export const router = new Router({
     { path: '/register', component: RegisterPage },
     { path: '/users', component: UserProfilePage},
     { path: '/users/:id', component: UserProfilePage},
-    { path: '/vote', component: VotePage},
+    { name: 'vote', path: '/vote', component: VotePage, props: true },
     { path: '/create', component: CreateVotePage},
 
     // otherwise redirect to home

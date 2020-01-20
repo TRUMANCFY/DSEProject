@@ -3,37 +3,23 @@ package voter
 import (
 	"crypto/dsa"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"math/big"
+	m "math/rand"
+	"time"
+	// "github.com/golang/glog"
 )
 
 type Voter struct{}
 
-// A Key is an ElGamal public key. There is one Key in each Election, and it
-// specifies the group in which computations are to be performed. Encryption of
-// a value m is performed as (g^r, g^m * y^r) mod p.
-type Key struct {
-	// Generator is the generator element g used in ElGamal encryptions.
-	Generator *big.Int `json:"g"`
-
-	// Prime is the prime p for the group used in encryption.
-	Prime *big.Int `json:"p"`
-
-	// ExponentPrime is another prime that specifies the group of exponent
-	// values in the exponent of Generator. It is used in challenge
-	// generation and verification.
-	ExponentPrime *big.Int `json:"q"`
-
-	// PublicValue is the public-key value y used to encrypt.
-	PublicValue *big.Int `json:"y"`
-}
-
 // NewKeyFromParams uses a given set of parameters to generate a public key.
-func (v *Voter) NewKeyFromParams(g *big.Int, p *big.Int, q *big.Int) (*Key, *big.Int, error) {
+func NewKeyFromParams(g *big.Int, p *big.Int, q *big.Int) (*Key, *big.Int, error) {
 	secret, err := rand.Int(rand.Reader, q)
 	if err != nil {
-		fmt.Println("Couldn't generate a secret for the key")
+		// glog.Error("Couldn't generate a secret for the key")
 		return nil, nil, err
 	}
 
@@ -43,27 +29,17 @@ func (v *Voter) NewKeyFromParams(g *big.Int, p *big.Int, q *big.Int) (*Key, *big
 
 // NewKey generates a fresh set of parameters and a public/private key pair in
 // those parameters.
-func (v *Voter) NewKey() (*Key, *big.Int, error) {
+func NewKey() (*Key, *big.Int, error) {
 	// Use the DSA crypto code to generate a key pair. For testing
 	// purposes, we'll use (2048,224) instead of (2048,160) as used by the
 	// current Helios implementation
 	params := new(dsa.Parameters)
 	if err := dsa.GenerateParameters(params, rand.Reader, dsa.L2048N224); err != nil {
-		fmt.Println("Couldn't generate DSA parameters for the ElGamal group")
+		// glog.Error("Couldn't generate DSA parameters for the ElGamal group")
 		return nil, nil, err
 	}
 
-	return v.NewKeyFromParams(params.G, params.P, params.Q)
-}
-
-// A Ciphertext is an ElGamal ciphertext, where g is Key.Generator, r is a
-// random value, m is a message, and y is Key.PublicValue.
-type Ciphertext struct {
-	// Alpha = g^r
-	Alpha *big.Int `json:"alpha"`
-
-	// Beta = g^m * y^r
-	Beta *big.Int `json:"beta"`
+	return NewKeyFromParams(params.G, params.P, params.Q)
 }
 
 // MulCiphertexts multiplies an ElGamal Ciphertext value element-wise into an
@@ -82,23 +58,23 @@ func (prod *Ciphertext) MulCiphertexts(other *Ciphertext, prime *big.Int) *Ciphe
 // selected or not. It also generates a DisjunctiveZKProof to show that
 // the value is either selected or not. It returns the randomness it
 // generated; this is useful for computing the OverallProof for a Question.
-func (v *Voter) Encrypt(selected bool, pk *Key) (*Ciphertext, *big.Int) {
+func Encrypt(selected bool, pk *Key) (*Ciphertext, *big.Int) {
 	// If this value is selected, then use g^1; otherwise, use g^0.
 	var plaintext *big.Int
 	//var realExp, fakeExp int64
-	//if selected {
-	//	plaintext = pk.Generator
-	//	realExp = 1
-	//	fakeExp = 0
-	//} else {
-	//	plaintext = big.NewInt(1)
-	//	realExp = 0
-	//	fakeExp = 1
-	//}
+	if selected {
+		plaintext = pk.Generator
+		//realExp = 1
+		//fakeExp = 0
+	} else {
+		plaintext = big.NewInt(1)
+		//realExp = 0
+		//fakeExp = 1
+	}
 
 	randomness, err := rand.Int(rand.Reader, pk.ExponentPrime)
 	if err != nil {
-		fmt.Println("Couldn't get randomness for an encryption")
+		// glog.Error("Couldn't get randomness for an encryption")
 		return nil, nil
 	}
 
@@ -125,156 +101,27 @@ func (v *Voter) Encrypt(selected bool, pk *Key) (*Ciphertext, *big.Int) {
 	return c, randomness
 }
 
-// A Question is part of an Election and specifies a question to be voted on.
-type Question struct {
-	// AnswerUrls can provide urls with information about answers. These
-	// urls can be empty.
-	AnswerUrls []string `json:"answer_urls"`
+// Create instantiates a question with the given answer set and other information.
+func NewQuestion(answers []string, max int, min int, question string, resultType string, shortName string) (*Question, error) {
+	if max < 0 || min < 0 || min > max {
+		return nil, errors.New("invalid question min and max")
+	}
 
-	// Answers is the list of answer choices for this question.
-	Answers []string `json:"answers"`
+	if resultType != "absolute" && resultType != "relative" {
+		return nil, errors.New("invalid result type")
+	}
 
-	// ChoiceType specifies the possible ways to evaluate responses. It can
-	// currently only be set to 'approval'.
-	ChoiceType string `json:"choice_type"`
+	ansURLs := make([]string, len(answers))
+	ans := make([]string, len(answers))
+	copy(ans, answers)
 
-	// Maximum specifies the maximum value of a vote for this Question. If
-	// Max is not specified in the JSON structure, then there will be no
-	// OverallProof, since any number of values is possible, up to the
-	// total number of answers. This can be detected by looking at
-	// OverallProof in the given Ballot.
-	Max int `json:"max"`
-
-	// Min specifies the minimum number of answers. This can be as low as
-	// 0.
-	Min int `json:"min"`
-
-	// Question gives the actual question to answer
-	Question string `json:"question"`
-
-	// ResultType specifies the way in which results should be calculated:
-	// 'absolute' or 'relative'.
-	ResultType string `json:"result_type"`
-
-	// ShortName gives a short representation of the Question.
-	ShortName string `json:"short_name"`
-
-	// TallyType specifies the kind of tally to perform. The only valid
-	// value here is 'homomorphic'.
-	TallyType string `json:"tally_type"`
-}
-
-// An EncryptedAnswer is part of a Ballot cast by a Voter. It is the answer to
-// a given Question in an Election.
-type EncryptedAnswer struct {
-	// Choices is a list of votes for each choice in a Question. Each choice
-	// is encrypted with the Election.PublicKey.
-	Choices []*Ciphertext `json:"choices"`
-
-	// IndividualProofs gives a proof that each corresponding entry in
-	// Choices is well formed: this means that it is either 0 or 1. So, each
-	// DisjunctiveZKProof is a list of two ZKProofs, the first proving the 0
-	// case, and the second proving the 1 case. One of these proofs is
-	// simulated, and the other is real: see the comment for ZKProof for the
-	// algorithm and the explanation.
-	//IndividualProofs []DisjunctiveZKProof `json:"individual_proofs"`
-
-	// OverallProof shows that the set of choices sum to an acceptable
-	// value: one that falls between Question.Min and Question.Max. If there
-	// is no Question.Max, then OverallProof will be empty and does not need
-	// to be checked.
-	//OverallProof DisjunctiveZKProof `json:"overall_proof"`
-
-	// Answer is the actual answer that is supposed to be encrypted in
-	// EncryptedAnswer. This is not serialized/deserialized if not present.
-	// This must only be present in a spoiled ballot because SECRECY.
-	Answer []int64 `json:"answer,omitempty"`
-
-	// Randomness is the actual randomness that is supposed to have been
-	// used to encrypt Answer in EncryptedAnswer. This is not serialized or
-	// deserialized if not present. This must only be present in a spoiled
-	// ballot because SECRECY.
-	Randomness []*big.Int `json:"randomness,omitempty"`
-}
-
-// A Ballot is a cryptographic vote in an Election.
-type Ballot struct {
-	// Answers is a list of answers to the Election specified by
-	// ElectionUuid and ElectionHash.
-	Answers []*EncryptedAnswer `json:"answers"`
-
-	// ElectionHash is the SHA-256 hash of the Election specified by
-	// ElectionUuid.
-	ElectionHash string `json:"election_hash"`
-
-	// ElectionUuid is the unique identifier for the Election that Answers
-	// apply to.
-	ElectionUuid string `json:"election_uuid"`
-}
-
-// An Election contains all the information about a Helios election.
-type Election struct {
-	// JSON stores the original JSON for the election. This is not part of
-	// the Helios JSON structure but is added here for convenience.
-	JSON []byte `json:"-"`
-
-	// ElectionHash stores the SHA256 hash of the JSON value, since this is
-	// needed to verify each ballot. This is not part of the original
-	// Helios JSON structure but is added here for convenience.
-	ElectionHash string `json:"-"`
-
-	// CastURL is the url that can be used to cast ballots; casting ballots
-	// is not currently supported by this go package. Ballots must still be
-	// cast using the online Helios service.
-	CastURL string `json:"cast_url"`
-
-	// Description is a plaintext description of the election.
-	Description string `json:"description"`
-
-	// FrozenAt is the date at which the election was fully specified and
-	// frozen.
-	FrozenAt string `json:"frozen_at"`
-
-	// Name is the full name of the election.
-	Name string `json:"name"`
-
-	// Openreg specifies whether or not voters can be added after the
-	// election has started.
-	Openreg bool `json:"openreg"`
-
-	// PublicKey is the ElGamal public key associated with the election.
-	// This is the key used to encrypt all ballots and to create and verify
-	// proofs.
-	PublicKey *Key `json:"public_key"`
-
-	// Questions is the list of questions to be voted on in this election.
-	Questions []*Question `json:"questions"`
-
-	// ShortName provides a short plaintext name for this election.
-	ShortName string `json:"short_name"`
-
-	// UseVoterAliases specifies whether or not voter names are replaced by
-	// alises (like V153) that leak no information about the voter
-	// identities. This can be used instead of encrypting voter names if the
-	// election creators want to be sure that voter identities will remain
-	// secret forever, even in the face of future cryptanalytic advances.
-	UseVoterAliases bool `json:"use_voter_aliases"`
-
-	// Uuid is a unique identifier for this election. This uuid is used in
-	// the URL of the election itself: the URL of the JSON version of this
-	// Election data structure is
-	// https://vote.heliosvoting.org/helios/elections/<uuid>
-	Uuid string `json:"uuid"`
-
-	// VotersHash provides the hash of the list of voters.
-	VotersHash string `json:"voters_hash"`
-
-	VotingEndsAt   string `json:"voting_ends_at"`
-	VotingStartsAt string `json:"voting_starts_at"`
+	// The only possible choice type is "approval", and the only possible
+	// tally type is "homomorphic".
+	return &Question{ansURLs, ans, "approval", max, min, question, resultType, shortName, "homomorphic"}, nil
 }
 
 // NewBallot takes an Election and a set of responses as input and fills in a Ballot
-func (v *Voter) NewBallot(election *Election, answers [][]int64) (*Ballot, error) {
+func NewBallot(election *Election, answers [][]int64) (*Ballot, error) {
 	if len(answers) != len(election.Questions) {
 		return nil, errors.New("wrong number of answers")
 	}
@@ -314,8 +161,8 @@ func (v *Voter) NewBallot(election *Election, answers [][]int64) (*Ballot, error
 		randTally := big.NewInt(0)
 		for j := range q.Answers {
 			var err error
-			if ch[j], rs[j] = v.Encrypt(results[j], pk); err != nil {
-				fmt.Println("Couldn't encrypt choice %d for question %d\n", j, i)
+			if ch[j], rs[j] = Encrypt(results[j], pk); err != nil {
+				// glog.Errorf("Couldn't encrypt choice %d for question %d\n", j, i)
 				return nil, err
 			}
 
@@ -350,13 +197,342 @@ func (v *Voter) NewBallot(election *Election, answers [][]int64) (*Ballot, error
 	return &Ballot{ans, election.ElectionHash, election.Uuid}, nil
 }
 
+// GenUUID creates RFC 4122-compliant UUIDs.
+// This function was suggested by a post on the golang-nuts mailing list.
+func GenUUID() (string, error) {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
+		// glog.Error("Could not generate a UUID")
+		return "", err
+	}
+
+	bytes[6] = (bytes[6] & 0x0f) | 0x40
+	bytes[8] = (bytes[8] & 0x3f) | 0x80
+	uuid := fmt.Sprintf("%x-%x-%x-%x-%x",
+		bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:])
+	return uuid, nil
+}
+
+// NewElection instantiates a new election with the given parameters.
+func NewElection(url string, desc string, frozenAt string, name string,
+	openreg bool, questions []*Question, shortName string,
+	useVoterAliases bool, votersHash string, votingEnd string,
+	votingStart string, k *Key) (*Election, *big.Int, error) {
+	uuid, err := GenUUID()
+	if err != nil {
+		// glog.Error("Couldn't generate an election UUID")
+		return nil, nil, err
+	}
+
+	var pk *Key
+	var secret *big.Int
+	if k == nil {
+		if pk, secret, err = NewKey(); err != nil {
+			// glog.Error("Couldn't generate a new key for the election")
+			return nil, nil, err
+		}
+	} else {
+		// Take the public params from k to generate the key.
+		if pk, secret, err = NewKeyFromParams(k.Generator, k.Prime, k.ExponentPrime); err != nil {
+			// glog.Error("Couldn't generate a new key for the election")
+			return nil, nil, err
+		}
+	}
+
+	e := &Election{
+		CastURL:         url,
+		Description:     desc,
+		FrozenAt:        frozenAt,
+		Name:            name,
+		Openreg:         openreg,
+		PublicKey:       pk,
+		Questions:       questions,
+		ShortName:       shortName,
+		UseVoterAliases: useVoterAliases,
+		Uuid:            uuid,
+		VotersHash:      votersHash,
+		VotingEndsAt:    votingEnd,
+		VotingStartsAt:  votingStart,
+	}
+
+	// Compute the JSON of the election and compute its hash
+	//json, err := MarshalJSON(e)
+	//if err != nil {
+	//	glog.Error("Couldn't marshal the election as JSON")
+	//	return nil, nil, err
+	//}
+	//
+	//h := sha256.Sum256(json)
+	//encodedHash := base64.StdEncoding.EncodeToString(h[:])
+	//e.ElectionHash = encodedHash[:len(encodedHash)-1]
+	//e.JSON = json
+
+	return e, secret, nil
+}
+
+// SplitKey performs an (n,n)-secret sharing of privateKey over addition mod
+// publicKey.ExponentPrime.
+func SplitKey(privateKey *big.Int, publicKey *Key, n int) ([]*Trustee, []*big.Int, error) {
+	// Choose n-1 random private keys and compute the nth as privateKey -
+	// (key_1 + key_2 + ... + key_{n-1}). This computation must be
+	// performed in the exponent group of g, which is
+	// Z_{Key.ExponentPrime}.
+	trustees := make([]*Trustee, n)
+	keys := make([]*big.Int, n)
+	sum := big.NewInt(0)
+	var err error
+	for i := 0; i < n-1; i++ {
+		keys[i], err = rand.Int(rand.Reader, publicKey.ExponentPrime)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		tpk := &Key{
+			Generator:     new(big.Int).Set(publicKey.Generator),
+			Prime:         new(big.Int).Set(publicKey.Prime),
+			ExponentPrime: new(big.Int).Set(publicKey.ExponentPrime),
+			PublicValue:   new(big.Int).Exp(publicKey.Generator, keys[i], publicKey.Prime),
+		}
+
+		trustees[i] = &Trustee{PublicKey: tpk}
+		sum.Add(sum, keys[i])
+		sum.Mod(sum, publicKey.ExponentPrime)
+	}
+
+	// The choice of random private keys in the loop fully determines the
+	// final key.
+	keys[n-1] = new(big.Int).Sub(privateKey, sum)
+	keys[n-1].Mod(keys[n-1], publicKey.ExponentPrime)
+	//npok, err := NewSchnorrProof(keys[n-1], publicKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ntpk := &Key{
+		Generator:     new(big.Int).Set(publicKey.Generator),
+		Prime:         new(big.Int).Set(publicKey.Prime),
+		ExponentPrime: new(big.Int).Set(publicKey.ExponentPrime),
+		PublicValue:   new(big.Int).Exp(publicKey.Generator, keys[n-1], publicKey.Prime),
+	}
+
+	//trustees[n-1] = &Trustee{PoK: npok, PublicKey: ntpk}
+	trustees[n-1] = &Trustee{PublicKey: ntpk}
+
+	return trustees, keys, nil
+}
+
+// AccumulateTallies combines the ballots homomorphically for each question and answer
+// to get an encrypted tally for each. It also compute the ballot tracking numbers for
+// each of the votes.
+func (election *Election) AccumulateTallies(votes []*CastBallot) ([][]*Ciphertext, []string) {
+	// Initialize the tally structures for homomorphic accumulation.
+
+	tallies := make([][]*Ciphertext, len(election.Questions))
+	fingerprints := make([]string, len(votes))
+	for i := range tallies {
+		tallies[i] = make([]*Ciphertext, len(election.Questions[i].Answers))
+		for j := range tallies[i] {
+			// Each tally must start at 1 for the multiplicative
+			// homomorphism to work.
+			tallies[i][j] = &Ciphertext{big.NewInt(1), big.NewInt(1)}
+		}
+	}
+
+	// Verify the votes and accumulate the tallies.
+	//resp := make(chan bool)
+	for i := range votes {
+		// Shadow i as a new variable for the goroutine.
+		i := i
+		//go func(c chan bool) {
+		//	glog.Infof("Verifying vote from %s\n", votes[i].VoterUuid)
+		//	c <- votes[i].Vote.Verify(election)
+		//	return
+		//}(resp)
+
+		h := sha256.Sum256(votes[i].JSON)
+		encodedHash := base64.StdEncoding.EncodeToString(h[:])
+		fingerprint := encodedHash[:len(encodedHash)-1]
+		fingerprints = append(fingerprints, fingerprint)
+
+		for j, q := range election.Questions {
+			for k := range q.Answers {
+				// tally_j_k = (tally_j_k * ballot_i_j_k) mod p
+				tallies[j][k].MulCiphertexts(votes[i].Vote.Answers[j].Choices[k], election.PublicKey.Prime)
+			}
+		}
+	}
+
+	// Make sure all the votes passed verification.
+	//for _ = range votes {
+	//	if !<-resp {
+	//		glog.Error("Vote verification failed")
+	//		return nil, nil
+	//	}
+	//}
+
+	return tallies, fingerprints
+}
+
+// A Result is a list of tally lists, one tally list per Question. Each tally
+// list consists of one integer per choice in the Question.
+type Result [][]int64
+
+// Tally computes the tally of an election and returns the result.
+// In the process, it generates partial decryption proofs for each of
+// the partial decryptions computed by the trustee.
+func (e *Election) Tally(votes []*CastBallot, trustees []*Trustee, trusteeSecrets []*big.Int) (Result, error) {
+	tallies, _ := e.AccumulateTallies(votes)
+	// TODO(tmroeder): maybe we should just skip votes that don't pass verification?
+	// What does the spec say?
+	//if len(voteFingerprints) == 0 {
+	//	glog.Error("Couldn't tally the votes")
+	//	return nil, errors.New("couldn't tally the votes")
+	//}
+
+	for k, t := range trustees {
+		df := make([][]*big.Int, len(e.Questions))
+		//dp := make([][]*ZKProof, len(e.Questions))
+		for i, q := range e.Questions {
+			df[i] = make([]*big.Int, len(q.Answers))
+			//dp[i] = make([]*ZKProof, len(q.Answers))
+			for j := range q.Answers {
+				df[i][j] = new(big.Int).Exp(tallies[i][j].Alpha, trusteeSecrets[k], t.PublicKey.Prime)
+				//if dp[i][j], err = NewPartialDecryptionProof(tallies[i][j], df[i][j], trusteeSecrets[k], t.PublicKey); err != nil {
+				//	glog.Errorf("Couldn't create a proof for (%d, %d) for trustee %d\n", i, j, k)
+				//	return nil, err
+				//}
+			}
+		}
+
+		t.DecryptionFactors = df
+		//t.DecryptionProofs = dp
+	}
+
+	// For each question and each answer, reassemble the tally and search for its value.
+	// Then put this in the results.
+	maxValue := len(votes)
+	result := make([][]int64, len(e.Questions))
+	for i, q := range e.Questions {
+		result[i] = make([]int64, len(q.Answers))
+		for j := range q.Answers {
+			alpha := big.NewInt(1)
+			for k := range trustees {
+				alpha.Mul(alpha, trustees[k].DecryptionFactors[i][j])
+				alpha.Mod(alpha, trustees[k].PublicKey.Prime)
+			}
+
+			beta := new(big.Int).ModInverse(alpha, e.PublicKey.Prime)
+			beta.Mul(beta, tallies[i][j].Beta)
+			beta.Mod(beta, e.PublicKey.Prime)
+
+			// This decrypted value can be anything between g^0 and g^maxValue.
+			// Try all values until we find it.
+			temp := new(big.Int)
+			val := new(big.Int)
+			var v int
+			for v = 0; v <= maxValue; v++ {
+				val.SetInt64(int64(v))
+				temp.Exp(e.PublicKey.Generator, val, e.PublicKey.Prime)
+				if temp.Cmp(beta) == 0 {
+					result[i][j] = int64(v)
+					break
+				}
+			}
+
+			if v > maxValue {
+				// glog.Errorf("Couldn't decrypt value (%d, %d)\n", i, j)
+				return nil, errors.New("couldn't decrypt part of the tally")
+			}
+		}
+	}
+
+	return result, nil
+}
+
+// NewCastBallot instantiates a CastBallot for a given set of answers for a Voter.
+func NewCastBallot(election *Election, answers [][]int64) (*CastBallot, error) {
+	// First, create the encrypted vote.
+	vote, err := NewBallot(election, answers)
+	if err != nil {
+		// glog.Error("Couldn't encrypt a ballot: ", err)
+		return nil, err
+	}
+
+	cb := &CastBallot{nil, "", vote, "", "", ""}
+
+	return cb, nil
+}
+
+func perm64(r *m.Rand, n int) []int64 {
+	m := make([]int64, n)
+	for i := 0; i < n; i++ {
+		m[i] = int64(i)
+	}
+	for i := 0; i < n; i++ {
+		j := r.Intn(i + 1)
+		m[i], m[j] = m[j], m[i]
+	}
+	return m
+}
+
 func main() {
 	//implementation here
 	fmt.Print("test")
-	// var pk *Key
-	// var secret *big.Int
-	// pk, secret, _ = NewKey()
-	// fmt.Println(pk)
-	// fmt.Println(secret)
+	var pk *Key
+	var secret *big.Int
+	pk, secret, _ = NewKey()
+	fmt.Println(pk)
+	fmt.Println(secret)
+
+	// create new election
+	answers := make([]string, 3)
+	answers[0] = "yes"
+	answers[1] = "no"
+	answers[2] = "maybe so"
+	q, _ := NewQuestion(answers, 3, 0, "Which is it?", "absolute", "Test Q")
+	q2, _ := NewQuestion(answers, 3, 0, "Which is it?", "absolute", "Test Q")
+
+	questions := []*Question{q, q2}
+	election, secret, _ := NewElection("https://example.com", "Fake Election", time.Now().String(),
+		"Fake Election", false, questions, "Fake",
+		false, "Fake hash", time.Now().String(), time.Now().String(), nil)
+
+	// create trustees
+	trusteeCount := 4
+	// glog.Infof("There are %d trustees\n", trusteeCount)
+	var trustees []*Trustee
+	var trusteeSecrets []*big.Int
+	trustees, trusteeSecrets, _ = SplitKey(secret, election.PublicKey, trusteeCount)
+
+	// First, create the encrypted vote.
+
+	//answers_voters := make([][]int64, len([]*Question{q}))
+	//answersCount := 3
+	//r := m.New(m.NewSource(time.Now().UnixNano()))
+	//
+	//answers_voters[0] = perm64(r, len(q.Answers))[:answersCount]
+	//fmt.Println("results" )
+	//fmt.Println(answers_voters)
+
+	answers_voter := make([][]int64, len(questions))
+	answers_voter[0] = []int64{0, 2}
+	answers_voter[1] = []int64{1}
+	fmt.Println(answers_voter)
+	vote1, _ := NewCastBallot(election, answers_voter)
+
+	answers_voter2 := make([][]int64, len(questions))
+	answers_voter2[0] = []int64{0, 1}
+	answers_voter2[1] = []int64{1}
+	fmt.Println(answers_voter2)
+	vote2, _ := NewCastBallot(election, answers_voter2)
+
+	votes := []*CastBallot{vote1, vote2}
+	results, _ := election.Tally(votes, trustees, trusteeSecrets)
+
+	fmt.Println(results)
 
 }

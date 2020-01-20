@@ -1,7 +1,10 @@
 <template>
     <div>
+        <p> Name: {{ electionName }} </p>
+        <p> Description: {{ electionDescription }} </p>
         <div v-for='(option, index) in options' v-bind:key='index' >
-            <b-form-group label="Radios using options">
+            <b-form-group>
+                <label> {{ qText[index] }} </label>
                 <b-form-radio-group
                     :options="option"
                     v-model="selection[index]"
@@ -9,6 +12,7 @@
             </b-form-group>
         </div>
         <button class='btn btn-primary' @click="submitVote">Submit</button>
+        <button class='btn btn-primary' @click="backToProfile">Back</button>
     </div>
 </template>
 
@@ -18,24 +22,15 @@ import { mapState, mapActions } from 'vuex'
 export default {
     data () {
         return {
-            options: [[
-                    { text: 'A', value: 0 },
-                    { text: 'B', value: 1 },
-                    { text: 'C', value: 2 },
-                    { text: 'D', value: 3 },
-                ],[
-                    { text: 'A+', value: 0 },
-                    { text: 'B+', value: 1 },
-                    { text: 'C+', value: 2 },
-                    { text: 'D+', value: 3 },
-                ],[
-                    { text: 'A-', value: 0 },
-                    { text: 'B-', value: 1 },
-                    { text: 'C-', value: 2 },
-                    { text: 'D-', value: 3 },
-                ],],
-            selection: [0, 0, 0],
+            options: [],
+            selection: [],
+            electionName: '',
+            electionDescription: '',
+            qText: [],
         }
+    },
+    props: {
+        questions: Object,
     },
     computed: {
         ...mapState('account', ['status', 'user'])
@@ -48,8 +43,7 @@ export default {
             var res = [];
 
             self.options.map((op, ind) => {
-                let tmp = Array(op.length).fill(0);
-                tmp[self.selection[ind]] = 1;
+                let tmp = [self.selection[ind]];
                 res.push(tmp);
             })
 
@@ -71,9 +65,43 @@ export default {
                 return temp
                 }
             });
+
+            confirm('The vote has been submitted!')
+
+            this.$router.push('/users')
+        },
+        backToProfile: function() {
+            this.$router.push('/users')
         }
     },
     mounted: function() {
+        var self = this;
+        console.log(this.questions)
+
+        if (this.questions == null) {
+            alert('No input')
+            return
+        }
+
+        self.electionName = self.questions['name']
+        self.electionDescription = self.questions['description']
+        
+        self.questions.questions.map(q => {
+            self.qText.push(q['question'])
+            self.selection.push(0)
+
+            var opt = []
+            q.choices.map((choice, ind) => {
+                opt.push({
+                    value: ind,
+                    text: choice,
+                })
+            })
+
+            self.options.push(opt);
+        })
+        
+        
         // console.log(this.user)
 
         // if (this.user == null) {

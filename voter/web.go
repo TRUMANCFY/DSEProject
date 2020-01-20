@@ -26,6 +26,26 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 	v.AckPost(true, w)
 }
 
+func (v *Voter) CreateElection(w http.ResponseWriter, r *http.Request) {
+	type Qlist struct {
+		Question string   `json:"question"`
+		Choices  []string `json:"choices"`
+	}
+
+	var election struct {
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		Questions   []Qlist `json:"questions"`
+		Creator     string  `json:"creator"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&election)
+
+	fmt.Println(election)
+
+	v.AckPost(true, w)
+}
+
 func (v *Voter) AckPost(success bool, w http.ResponseWriter) {
 	var response struct {
 		Success bool `json:"success"`
@@ -37,6 +57,7 @@ func (v *Voter) AckPost(success bool, w http.ResponseWriter) {
 func (v *Voter) ListenToGui() {
 	r := mux.NewRouter()
 	r.HandleFunc("/vote", v.CollectVote).Methods("POST")
+	r.HandleFunc("/createElection", v.CreateElection).Methods("POST")
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/frontend/dist/"))))
 	srv := &http.Server{
 		Handler:           r,
