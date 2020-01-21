@@ -43,7 +43,7 @@ def authenticate():
             # check the correctness of password
             dbUser = db.search(where('username') == incomingUser)[0]
             if dbUser['password'] == incomingPwd:
-                print('found')
+                # print('found')
                 res = dict()
                 res['id'] = dbUser['id']
                 res['username'] = dbUser['username']
@@ -87,8 +87,20 @@ def vote():
     if request.method == 'POST':
         vote = json.loads(request.data)
         votedb.insert(vote)
+
+        election = electiondb.search(where('name') == vote['election'])[0]
+
+        res = election['publickey']
+        res['g'] = str(res['g'])
+        res['p'] = str(res['p'])
+        res['q'] = str(res['q'])
+        res['y'] = str(res['y'])
+
+        res = json.dumps(res)
+
+        print(res)
         
-        return Response(status=200)
+        return Response(res, status=200)
     
     return Response(status=404)
 
@@ -97,9 +109,9 @@ def getVoted():
     if request.method == 'POST':
         myID = json.loads(request.data)
         myID = myID['voter']
-        print(myID)
+        # print(myID)
         alreadyVotes = votedb.search(where('voter')==myID)
-        print(alreadyVotes)
+        # print(alreadyVotes)
         res = json.dumps(alreadyVotes)
         return Response(res, status=200)
     
@@ -111,7 +123,7 @@ def getUsers():
     if request.method == 'GET':
         # return the data of user
         # user id first name/last name
-        print('Get all users')
+        # print('Get all users')
         allUsers = db.all()
         res = json.dumps(allUsers)
         return Response(res, status=200)
@@ -134,6 +146,23 @@ def register():
             # sendConfirmation(registerInfo)
             return Response(status=200)
 
+    return Response(status=404)
+
+@app.route('/publickey', methods=['POST'])
+def getPublicKey():
+    if request.method == 'POST':
+        pkcontainer = json.loads(request.data)
+        pkcontainer = pkcontainer['pkContainer']
+        print(pkcontainer)
+        name = pkcontainer['name']
+        pk = pkcontainer['publickey']
+
+        theone = electiondb.search(where('name') == name)[0]
+        theone['publickey'] = pk
+        electiondb.upsert(theone, where('name') == name)
+
+        return Response(status=200)
+    
     return Response(status=404)
 
 @app.route('/users/<id>', methods=['POST'])

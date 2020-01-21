@@ -104,6 +104,7 @@ export default {
                 description: self.electionDescription,
                 questions: self.questionList,
                 creator: this.user.id,
+                publickey: null
             }
 
             var payload = {
@@ -119,17 +120,6 @@ export default {
                         return '';
                     }
             })
-
-            // var qaMap = {}
-            // self.questionList.forEach(element => {
-            //     qaMap
-            // });
-            // // we need to generate new payload for the api
-            // var electionOptionApi = {
-            //     name: self.electionName,
-            //     description: self.electionDescription,
-            //     questions: 
-            // }
 
             var b = await fetch('/createElection', payload)
             .then(res => {
