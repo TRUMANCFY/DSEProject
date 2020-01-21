@@ -33,8 +33,29 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 	comingElection.Elec.PublicKey = pk
 	comingElection.Elec.Secret = secret
 
-	s.listElection = append(s.listElection, comingElection.Elec)
+	// create trustees from election
+	trusteeCount := 4
+	var trustees []*Trustee
+	var trusteeSecrets []*big.Int
+	trustees, trusteeSecrets, _ = SplitKey(comingElection.Elec.Secret, comingElection.Elec.PublicKey, trusteeCount)
 
+	// hardcoded addresses of the trusteeSecrets
+	trustees.Address[0] = "00000000"
+	trustees.Address[1] = "00000000"
+	trustees.Address[2] = "00000000"
+	trustees.Address[3] = "00000000"
+
+	// add those trustees to the election
+	comingElection.Trustees = trustees
+
+	//send PM POST to each trustee with its secret
+
+
+	// destroy the secret key so that the independant party no longer has knowledge of it
+	comingElection.Elec.Secret = ""
+
+	// append the election to the public elecrions
+	s.listElection = append(s.listElection, comingElection.Elec)
 }
 
 func (s *Server) ListenToGui() {

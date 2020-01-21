@@ -26,6 +26,9 @@ type Trustee struct {
 
 	// Uuid is the unique identifier for this Trustee.
 	Uuid string `json:"uuid"`
+
+	// Address of the trustee
+	Address string `json:"address"`
 }
 
 type CastBallot struct {
@@ -227,4 +230,6 @@ type Election struct {
 	VotingStartsAt string `json:"voting_starts_at"`
 
 	Secret *big.Int
+
+	Trustees []*Trustee string `json:"trustee"`
 }
