@@ -1,5 +1,6 @@
 <template>
     <div>
+        <h2> Create Election </h2>
         <div id='electionBox'>
             <label> Election Name </label>
             <b-form-input

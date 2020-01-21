@@ -16,7 +16,9 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var answers struct {
-		Answers [][]int `json:"answers"`
+		User     string  `json:"user`
+		Election string  `json:"election"`
+		Answers  [][]int `json:"answers"`
 	}
 
 	json.NewDecoder(r.Body).Decode(&answers)

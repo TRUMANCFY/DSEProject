@@ -19,6 +19,8 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 
+import config from 'config'
+
 export default {
     data () {
         return {
@@ -50,21 +52,29 @@ export default {
             console.log(res);
             return res;
         },
-        submitVote: function() {
+        submitVote: async function() {
             var self = this;
             let voteRes = self.generateVote();
             
             var payload = {
+                'voter': self.user.id,
+                'election': self.electionName,
                 'answers': voteRes,
             }
 
-            var a = fetch('/vote', {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
+            var a = await fetch('/vote', {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
             .then(res => {
                 if (res.ok) {
-                var temp = res.json()
-                return temp
+                    return ''
                 }
             });
+
+            var b = await fetch(`${config.apiUrl}/vote`, {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    return ''
+                }
+            })
 
             confirm('The vote has been submitted!')
 

@@ -14,6 +14,7 @@ from flask_mail import Mail
 from tinydb import TinyDB, where, Query
 db = TinyDB('users.json')
 electiondb = TinyDB('election.json')
+votedb = TinyDB('vote.json')
 
 from flask_mail import Message
 
@@ -80,6 +81,30 @@ def getElection():
         return Response(res, mimetype='application/json')
     
     return Response(status=404)
+
+@app.route('/vote', methods=['POST'])
+def vote():
+    if request.method == 'POST':
+        vote = json.loads(request.data)
+        votedb.insert(vote)
+        
+        return Response(status=200)
+    
+    return Response(status=404)
+
+@app.route('/getVoted', methods=['POST'])
+def getVoted():
+    if request.method == 'POST':
+        myID = json.loads(request.data)
+        myID = myID['voter']
+        print(myID)
+        alreadyVotes = votedb.search(where('voter')==myID)
+        print(alreadyVotes)
+        res = json.dumps(alreadyVotes)
+        return Response(res, status=200)
+    
+    return Response(status=404)
+        
 
 @app.route('/users', methods=['GET'])
 def getUsers():

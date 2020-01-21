@@ -1,6 +1,7 @@
 <template>
     <div>
-        <div id='profile'>
+        <h2>User Profile</h2>
+        <div id='profile' style='margin-top:20px;'>
             <div id='leftProfile'>
                 <img v-bind:src="registeredImage" alt="Avatar" class="avatar">
             </div>
@@ -23,13 +24,18 @@
             </div>
         </div>
 
-        <div id='poll'>
-            <button class="btn btn-primary" @click="goVote">Go to vote</button>
-            <button class="btn btn-primary" @click='createElection' style='margin-left: 20px;'> Create an election </button>
-        </div>
+
+        <button class="btn btn-primary" @click='createElection' style='margin-top:10px;'> Create an election </button>
 
         <div class='form-group' style='margin-top: 10px;'>
-            <b-form-select v-model="selected" :options="elections" :select-size="6" style='width: 30%;'></b-form-select>
+            <h5> Participate an election </h5>
+            <b-form-select v-model="selected" :options="elections" :select-size="6" style='width: 40%;'></b-form-select>
+            <button class="btn btn-primary" @click="goVote" style='margin-left:10px'>Go to vote</button>
+        </div>
+         <div class='form-group' style='margin-top: 10px;'>
+            <h5> View election result </h5>
+            <b-form-select v-model="selectedResult" :options="electionsFinish" :select-size="6" style='width:40%;'></b-form-select>
+            <button class="btn btn-primary" @click="viewResult" style='margin-left:10px'> View </button>
         </div>
     </div>
 </template>
@@ -47,6 +53,8 @@ export default {
             registeredImage: registeredImage,
             elections: [],
             selected: null,
+            selectedResult: null,
+            electionsFinish: [],
         }
     },
     computed: {
@@ -65,6 +73,7 @@ export default {
                 alert('Please select one election')
                 return
             }
+
             var election = {}
 
             self.elections.map(e => {
@@ -101,6 +110,33 @@ export default {
         },
         createElection: function() {
             this.$router.push('/create')
+        },
+        getElectionFinish: async function() {
+            var self = this;
+            
+            var payload = {
+                'voter': self.user.id,
+            }
+            var electionDone = await fetch(`${config.apiUrl}/getVoted`, {method: 'POST', body: JSON.stringify(payload), mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    var tmp = res.json();
+                    return tmp;
+                }
+            });
+
+            var electionsF = []
+
+            electionDone.map(a => {
+                electionsF.push(a.election)
+            })
+
+            if (electionsF.length != self.electionsFinish.length) {
+                self.electionsFinish = electionsF;
+            }
+        },
+        viewResult: function() {
+
         }
     },
     mounted: function() {
@@ -111,6 +147,7 @@ export default {
         }
 
         setInterval(this.getElection, 100)
+        setInterval(this.getElectionFinish, 100)
     }
 };
 </script>
