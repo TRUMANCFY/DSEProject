@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
+	"math/big"
 	"net/http"
 	"time"
 
@@ -27,7 +27,11 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 
 	json.NewDecoder(r.Body).Decode(&comingElection)
 
-	fmt.Println(comingElection)
+	var pk *Key
+	var secret *big.Int
+	pk, secret, err := NewKey()
+	comingElection.Elec.PublicKey = pk
+	comingElection.Elec.Secret = secret
 
 	s.listElection = append(s.listElection, comingElection.Elec)
 

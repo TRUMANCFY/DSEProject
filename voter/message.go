@@ -225,4 +225,6 @@ type Election struct {
 
 	VotingEndsAt   string `json:"voting_ends_at"`
 	VotingStartsAt string `json:"voting_starts_at"`
+
+	Secret *big.Int
 }
