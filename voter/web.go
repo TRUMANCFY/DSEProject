@@ -41,7 +41,18 @@ func (v *Voter) CreateElection(w http.ResponseWriter, r *http.Request) {
 
 	json.NewDecoder(r.Body).Decode(&election)
 
-	fmt.Println(election)
+	// generate the list of question
+	questionList := make([]*Question, 0)
+
+	for _, d := range election.Questions {
+		q := &Question{
+			Max:      1,
+			Min:      1,
+			Question: d.Question,
+			Answers:  d.Choices,
+		}
+		questionList = append(questionList, q)
+	}
 
 	v.AckPost(true, w)
 }
