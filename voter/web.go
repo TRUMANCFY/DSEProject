@@ -1,6 +1,7 @@
 package voter
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -54,6 +55,21 @@ func (v *Voter) CreateElection(w http.ResponseWriter, r *http.Request) {
 			Answers:  d.Choices,
 		}
 		questionList = append(questionList, q)
+	}
+
+	newElection, _, _ := NewElection("https://example.com", "Fake Election", time.Now().String(),
+		"Fake Election", false, questionList, "Fake",
+		false, "Fake hash", time.Now().String(), time.Now().String(), nil)
+
+	values := map[string]Election{"elec": *newElection}
+	jsonValue, _ := json.Marshal(values)
+	// target, _ := url.Parse("127.0.0.1:8081/election")
+	resp, err := http.Post("http://127.0.0.1:8081/election", "application/json", bytes.NewBuffer(jsonValue))
+
+	fmt.Println(resp)
+
+	if err != nil {
+		panic(err)
 	}
 
 	v.AckPost(true, w)

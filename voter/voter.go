@@ -224,20 +224,20 @@ func NewElection(url string, desc string, frozenAt string, name string,
 		return nil, nil, err
 	}
 
-	var pk *Key
-	var secret *big.Int
-	if k == nil {
-		if pk, secret, err = NewKey(); err != nil {
-			// glog.Error("Couldn't generate a new key for the election")
-			return nil, nil, err
-		}
-	} else {
-		// Take the public params from k to generate the key.
-		if pk, secret, err = NewKeyFromParams(k.Generator, k.Prime, k.ExponentPrime); err != nil {
-			// glog.Error("Couldn't generate a new key for the election")
-			return nil, nil, err
-		}
-	}
+	// var pk *Key
+	// var secret *big.Int
+	// if k == nil {
+	// 	if pk, secret, err = NewKey(); err != nil {
+	// 		// glog.Error("Couldn't generate a new key for the election")
+	// 		return nil, nil, err
+	// 	}
+	// } else {
+	// 	// Take the public params from k to generate the key.
+	// 	if pk, secret, err = NewKeyFromParams(k.Generator, k.Prime, k.ExponentPrime); err != nil {
+	// 		// glog.Error("Couldn't generate a new key for the election")
+	// 		return nil, nil, err
+	// 	}
+	// }
 
 	e := &Election{
 		CastURL:         url,
@@ -245,7 +245,7 @@ func NewElection(url string, desc string, frozenAt string, name string,
 		FrozenAt:        frozenAt,
 		Name:            name,
 		Openreg:         openreg,
-		PublicKey:       pk,
+		PublicKey:       nil,
 		Questions:       questions,
 		ShortName:       shortName,
 		UseVoterAliases: useVoterAliases,
@@ -266,8 +266,8 @@ func NewElection(url string, desc string, frozenAt string, name string,
 	//encodedHash := base64.StdEncoding.EncodeToString(h[:])
 	//e.ElectionHash = encodedHash[:len(encodedHash)-1]
 	//e.JSON = json
-
-	return e, secret, nil
+	return e, nil, nil
+	// return e, secret, nil
 }
 
 // SplitKey performs an (n,n)-secret sharing of privateKey over addition mod
