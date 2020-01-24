@@ -62,19 +62,30 @@ export default {
                 'answers': voteRes,
             }
 
+            var pk = await fetch(`${config.apiUrl}/vote`, {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    var tmp = res.json()
+                    return tmp
+                }
+            })
+
+            console.log(this.questions.questions)
+            
+            payload['publickey'] = pk
+            payload['qanda'] = this.questions.questions
+
+            // console.log(payload)
+            // console.log(this.questions.questions)
+
+            console.log(payload)
+
             var a = await fetch('/vote', {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
             .then(res => {
                 if (res.ok) {
                     return ''
                 }
             });
-
-            var b = await fetch(`${config.apiUrl}/vote`, {method: "POST", body: JSON.stringify(payload), mode: 'cors'})
-            .then(res => {
-                if (res.ok) {
-                    return ''
-                }
-            })
 
             confirm('The vote has been submitted!')
 

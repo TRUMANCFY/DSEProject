@@ -1,1 +1,1 @@
-{"_default": {"1": {"voter": 0, "election": "3rdElection", "answers": [[0], [0]]}, "2": {"voter": 0, "election": "2ndQ", "answers": [[0], [0]]}, "3": {"voter": 0, "election": "test", "answers": [[0]]}}}
+{"_default": {"1": {"voter": 0, "election": "elec2", "answers": [[0]]}}}
