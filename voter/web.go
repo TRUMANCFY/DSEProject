@@ -86,7 +86,7 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 
 	// encode
 	vote, _ := NewCastBallot(electionPk, answers.Answers)
-	fmt.Print(vote)
+	fmt.Print(vote.Vote.Answers)
 	v.AckPost(true, w)
 }
 
