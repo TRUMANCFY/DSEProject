@@ -59,6 +59,12 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 
 	//send PM POST to each trustee with its secret
 
+	// destroy the secret key so that the independant party no longer has knowledge of it
+	comingElection.Elec.Secret = ""
+
+	// append the election to the public elecrions
+	s.listElection = append(s.listElection, comingElection.Elec)
+
 	// send the public key to python server
 
 	// comingElection.Elec.Name
