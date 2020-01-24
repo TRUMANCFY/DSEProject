@@ -1,6 +1,6 @@
 $(document).ready(function(){
 
-	var guiport = "13081"
+	var guiport = prompt("PLEASE INPUT THE GUIPORT", 13081)
 	var url = "http://127.0.0.1:" + guiport + "/"
 	// Get id
 	$.ajax({
@@ -11,7 +11,7 @@ $(document).ready(function(){
 
 			console.log(json)
 			var ID = json.id
-
+			console.log("id is " + ID)
 			$("#NodeID").append("<P>" + ID)
 		}
 	})
@@ -20,6 +20,7 @@ $(document).ready(function(){
 	var peer_addrs = new Array();
 	var rumors = new Array();
 	var routable = new Array();
+	var searched = new Array();
 
 	// Define update peer_addrs and rumors func
 	function updatePeers() {
@@ -95,23 +96,49 @@ $(document).ready(function(){
 				if (new_updated_rumors.length > rumors.length) {
 
 					rumors = new_updated_rumors;
-
+					
 					$("#MsgBox").empty();
 
 					rumors.forEach((v, i) => {
-
-						$("#MsgBox").append("<P>Origin: " + v.Origin +  " ID: " + v.ID + " Text: " + v.Text);
+						console.log(v)
+						$("#MsgBox").append("<p class='message'>" + v + "</p>");
 					});
 				}
  			}
  		});
 	}
+	function updateSearch() {
 
+		$.ajax({
+			url: url + "search",
+			type: "GET",
+			dataType: "json",
+			success: function(json){
+				var new_updated_matched = Array.from(json.matches, x => x);
+				console.log(new_updated_matched)
+				// Check for updates
+				if (new_updated_matched.length > searched.length) {
+
+					searched = new_updated_matched;
+
+					$("#MatchedBox").empty();
+
+					searched.forEach((v, i) => {
+
+						$("#MatchedBox").append($("<option/>", {
+							value : v.substring(13,),
+							text : v.substring(13,)
+						}));
+					});
+				}
+ 			}
+ 		});
+	}
 	// Run update periodically
 	setInterval(updatePeers, 1000);
 	setInterval(updateMsg, 1000);
 	setInterval(updateRoutable, 1000);
-
+	setInterval(updateSearch, 1000)
 	// Define handler for add msg
 	$("#InputBtn").click(function(){
 
@@ -255,6 +282,46 @@ $(document).ready(function(){
 			success: function(msg) {
 
 				alert("Successfully request a file");
+			}
+		});
+	})
+
+	// Define handler for file search
+	$("#SearchBtn").click(function() {
+
+		// Get keywords to search
+		var keywords = $("#SearchFile").val();
+		$("#SearchFile").val("");
+
+		// Send request to peer
+		var data = {
+			Keywords : keywords,
+		};
+		$.ajax({
+			url: url + "search",
+			type: "POST",
+			data: JSON.stringify(data),
+			dataType: "json",
+			success: function(msg) {
+				alert("Successfully search for matches of keywords");
+			}
+		})
+	})
+
+	// Define handler for downloading searched file
+	$("#DownloadSearched").click(function(){
+		var target = $("#MatchedBox").children("option:selected").val();
+		var data = {
+			Name: target,
+		};
+		console.log("Downloading" + target);
+		$.ajax({
+			url: url + "download",
+			type: "POST",
+			data: JSON.stringify(data),
+			dataType: "json",
+			success: function(msg) {
+				alert("Successfully Download the file");
 			}
 		});
 	})

@@ -21,6 +21,23 @@ type OriginRelayer struct {
 	HeartBeat bool 
 }
 
+type RoutingErr struct {
+	Dest string
+}
+
+func (err *RoutingErr) Error() (errorMsg string) {
+
+	errorMsg = fmt.Sprintf("Cannot find next hop towards %s", err.Dest)
+	return
+}
+
+func NewRoutingErr(dest string) RoutingErr {
+
+	return RoutingErr{
+		Dest : dest,
+	}
+}
+
 func (router *DSDV) StartRouting() {
 	// Get entry from channel
 	// Update DSDV

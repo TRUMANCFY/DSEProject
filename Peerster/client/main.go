@@ -5,6 +5,7 @@ import (
 	"flag"
 	"net"
 	"os"
+	"strings"
 	"encoding/hex"
 	"github.com/dedis/protobuf"
 	"github.com/LiangweiCHEN/Peerster/message"
@@ -12,7 +13,7 @@ import (
 
 
 /* Struct definition */
-func input() (UIPort string, msg string, dest string, file, request string) {
+func input() (UIPort string, msg string, dest string, file, request, keywords string, budget int, voterid, vote string) {
 
 	// Set cmd flag value containers
 	flag.StringVar(&UIPort, "UIPort", "8080", "UI port number")
@@ -25,6 +26,13 @@ func input() (UIPort string, msg string, dest string, file, request string) {
 
 	flag.StringVar(&request, "request", "", "metahash of the file to be requested")
 
+	flag.StringVar(&keywords, "keywords", "", "Keywords of file title to search")
+
+	flag.IntVar(&budget, "budget", 2, "Initial budget of expanding ring search")
+
+	// Parameter for votes
+	flag.StringVar(&voterid, "Voterid", "", "Voter id in string")
+	flag.StringVar(&vote, "Vote", "", "Vote in string")
 	// Parse cmd values
 	flag.Parse()
 
@@ -33,14 +41,17 @@ func input() (UIPort string, msg string, dest string, file, request string) {
 
 func main() {
 
-	UIPort, msg, dest, file, request := input()
+	UIPort, msg, dest, file, request, keywords, budget, voterid, vote := input()
 
 	// Handle invalid user input
 	switch {
-	case msg != "" && dest != "" && file == "" && request == "":
-	case msg == "" && dest == "" && file != "" && request == "":
-	case msg == "" && dest != "" && file != "" && request != "":
-	case msg != "" && dest == "" && file == "" && request == "":
+	case msg != "" && dest != "" && file == "" && request == "" && keywords == "": // Private msg
+	case msg == "" && dest == "" && file != "" && request == "" && keywords == "": // Share file instruction
+	case msg == "" && dest != "" && file != "" && request != "" && keywords == "": // Download file instruction
+	case msg != "" && dest == "" && file == "" && request == "" && keywords == "": // Gossip msg
+	case msg == "" && dest == "" && file == "" && request == "" && keywords != "" && budget > 0: // Search file instruction
+	case msg == "" && dest == "" && file != "" && request != "" && keywords == "": // Download searched file instruction?
+	case voterid != "" && vote != "":												// Blockchain
 	default:
 		fmt.Printf("ERROR (Bad argument combination)")
 		os.Exit(1)
@@ -84,14 +95,27 @@ func main() {
 	} else {
 		requestPtr = &requestBytes
 	}
+
+	// Get the keywords slice
+	var keyword_slice []string
+	if len(keywords) > 0 {
+		keyword_slice = strings.Split(keywords, ",")
+	} else {
+		keyword_slice = make([]string, 0)
+	}
+	fmt.Printf("Keywords are %s\n", strings.Join(keyword_slice, ","))
+	fmt.Printf("Voterid %s Vote %s\n", voterid, vote)
 	pkt := &message.Message{
 		Text : msg,
 		Destination : destPtr,
 		File : filePtr,
 		Request : requestPtr,
+		Keywords : keyword_slice,
+		Budget : uint64(budget),
+		Voterid : voterid,
+		Vote : vote,
 	}
 
-	fmt.Println(pkt.Request)
 	// Encode the msg
 	msg_bytes, err := protobuf.Encode(pkt)
 
@@ -101,7 +125,7 @@ func main() {
 	}
 
 	// Send the msg to the server
-	// fmt.Println("Sending to gossiper")
+	fmt.Println("Sending to gossiper")
 	conn.Write(msg_bytes)
 
 	return

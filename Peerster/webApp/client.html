@@ -29,14 +29,19 @@ div.contentLeft {
 div.contentRight{
 	width : 25%;
 	background-color: white;
+	overflow: hidden;
 }
 div.rightThing {
   width: 25%;
   background-color: yellow;
+  overflow: scroll;
 }
 div.wideThing {
 	width: 50%;
 	background-color: blue;
+}
+div.message {
+	overflow: hidden;
 }
 </style>
 </head>
@@ -96,6 +101,17 @@ div.wideThing {
 		<textarea id="MetaHash" placeholder="MetaHash"></textarea>
 		<button id="RequestBtn">Request</button>
 	</div>
+	<div class="contentRight" id="Search">
+		<h2> Search File</h2>
+		<textarea id="SearchFile" placeholder="Keyword"></textarea>
+		<button id="SearchBtn">Search</button>
+	</div> 
+	<div class="rightThing" id="SearchedFile">
+		<h2> Matched FileName</h2>
+		<select class="Routable" id="MatchedBox" multiple></select>
+		<button id="DownloadSearched">Download</button>
+	</div>
 </div>
+
 
 </body>
