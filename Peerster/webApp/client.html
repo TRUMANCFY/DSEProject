@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+</script>
+<script src="client.js"></script>
+<style>
+div.NodeBox {
+	width : 500px;
+	height: 500px;
+	overflow : auto;
+}
+
+
+div.container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+div.leftThing {
+  width: 25%;
+  background-color: blue;
+}
+div.contentLeft {
+  width: 25%;
+  background-color: green;
+}
+div.contentRight{
+	width : 25%;
+	background-color: white;
+}
+div.rightThing {
+  width: 25%;
+  background-color: yellow;
+}
+div.wideThing {
+	width: 50%;
+	background-color: blue;
+}
+</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="leftThing">
+		<h2>ID</h2>
+		<div id="NodeID"></div>	
+		</div>
+
+		<div class="contentLeft">
+			<h2>Node Box</h2>
+			<div class="NodeBox" id="PeerBox">
+			</div>
+		</div>
+
+		<div class="contentRight">
+			<h2>Routable Node</h2>
+			<select class="Routable" id="RoutableBox" multiple>
+			</select>
+		</div>
+		<div class="rightThing">
+			<h2>Msg list</h2>
+			<div id="MsgBox">
+			</div>
+		</div>
+</div>
+<div class="container">
+
+	<div class="leftThing" id="InputBox">
+		<h2>Input msg</h2>
+		<textarea id="InputMsg"></textarea>
+		<button id="InputBtn">Send</button>
+	</div>
+	<div class="contentLeft">
+		<h2>Add peer</h2>
+		<textarea id="PeerAddr"></textarea>
+		<button id="PeerAddBtn">Add</button>
+	</div>
+	<div class="contentRight" id="PrivateInputBox">
+		<h2>Private Msg</h2>
+		<textarea id="PrivateInput"></textarea>
+		<button id="PrivateBtn">Submit</button>	
+	</div>
+	<div class="rightThing" id="ShareFileBox">
+		<h2>Share File</h2>
+		<textarea id="ToShareFile"></textarea>
+		<button id="ShareBtn">Share</button>
+	</div>
+</div>
+<div class="container">
+	<div class="wideThing" id="RequestFile">
+		<h2> Requst File</h2>
+		<textarea id="RequestPeer" placeholder="RequestPeerName"></textarea>
+		<textarea id="FileNameToStore" placeholder="FileNameToStore"></textarea>
+		<textarea id="MetaHash" placeholder="MetaHash"></textarea>
+		<button id="RequestBtn">Request</button>
+	</div>
+</div>
+
+</body>
