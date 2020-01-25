@@ -152,7 +152,7 @@ def register():
 def getPublicKey():
     if request.method == 'POST':
         pkcontainer = json.loads(request.data)
-        pkcontainer = pkcontainer['pkContainer']
+        pkcontainer = pkcontainer['pkcontainer']
         print(pkcontainer)
         name = pkcontainer['name']
         pk = pkcontainer['publickey']

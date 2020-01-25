@@ -71,7 +71,7 @@ export default {
             })
 
             console.log(this.questions.questions)
-            
+
             payload['publickey'] = pk
             payload['qanda'] = this.questions.questions
 

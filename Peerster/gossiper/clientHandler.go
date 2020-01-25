@@ -3,7 +3,7 @@ package gossiper
 import (
 	"fmt"
 	"strings"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 func (g *Gossiper) HandleClient(msg *message.Message) {

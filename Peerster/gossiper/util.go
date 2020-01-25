@@ -3,8 +3,8 @@ package gossiper
 import (
 	"fmt"
 	"math/rand"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/routing"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 func (g *Gossiper) ForwardPkt(pkt *message.GossipPacket, dest string) (err routing.RoutingErr) {

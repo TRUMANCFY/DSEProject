@@ -1,7 +1,7 @@
 package gossiper
 
 import (
-	"github.com/LiangweiCHEN/Peerster/message" 
+	"github.com/TRUMANCFY/DSEProject/Peerster/message" 
 )
 func (g *Gossiper) QSCRound(block *message.BlockPublish) {
 	/*

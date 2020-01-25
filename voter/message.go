@@ -32,10 +32,7 @@ type Trustee struct {
 }
 
 type CastBallot struct {
-	// JSON is the JSON string corresponding to this type. This is not part
-	// of the original JSON structure (obviously).
 	JSON []byte `json:"-"`
-
 	// CastAt gives the time at which Vote was cast.
 	CastAt string `json:"cast_at"`
 
@@ -231,5 +228,5 @@ type Election struct {
 
 	Secret *big.Int
 
-	Trustees []*Trustee string `json:"trustee"`
+	Trustees []*Trustee `json:"trustee"`
 }

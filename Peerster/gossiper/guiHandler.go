@@ -1,17 +1,20 @@
 package gossiper
 
 import (
-	"os"
-	"fmt"
-	"log"
-	"time"
-	"strings"
-	"net/http"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"log"
+	"math/big"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 	"github.com/gorilla/mux"
-	"github.com/LiangweiCHEN/Peerster/message"
 )
+
 /*****************************************************/
 // GUI Handling
 
@@ -24,7 +27,7 @@ func (g *Gossiper) HandleGUI() {
 		// Register handlers
 		r.HandleFunc("/message", g.MessageGetHandler).
 			Methods("GET", "OPTIONS")
-		r.HandleFunc("/node",  g.NodeGetHandler).
+		r.HandleFunc("/node", g.NodeGetHandler).
 			Methods("GET", "OPTIONS")
 		r.HandleFunc("/message", g.MessagePostHandler).
 			Methods("POST", "OPTIONS")
@@ -48,14 +51,18 @@ func (g *Gossiper) HandleGUI() {
 			Methods("POST", "OPTIONS")
 		r.HandleFunc("/vote", g.VoteHandler).
 			Methods("POST", "OPTIONS")
+		r.HandleFunc("/partialkey", g.PartialKeyHandler).
+			Methods("POST", "OPTIONS")
+		r.HandleFunc("/endvote", g.EndVote).
+			Methods("POST", "OPTIONS")
 		fmt.Printf("Starting webapp on address http://127.0.0.1:%s\n", g.GuiPort)
 
 		srv := &http.Server{
 
-			Handler : r,
-			Addr : fmt.Sprintf("127.0.0.1:%s", g.GuiPort),
+			Handler:      r,
+			Addr:         fmt.Sprintf("127.0.0.1:%s", g.GuiPort),
 			WriteTimeout: 15 * time.Second,
-			ReadTimeout: 15 * time.Second,
+			ReadTimeout:  15 * time.Second,
 		}
 
 		log.Fatal(srv.ListenAndServe())
@@ -79,7 +86,7 @@ func (g *Gossiper) MessageGetHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(messages)
 }
 
-func (g *Gossiper) GetMessages() ([]string){
+func (g *Gossiper) GetMessages() []string {
 	// Return all rumors
 
 	buffer := g.MsgBuffer.Msg
@@ -91,13 +98,12 @@ func (g *Gossiper) MessagePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	enableCors(&w)
 	var message struct {
-
 		Text string `json:"text"`
 	}
 
 	json.NewDecoder(r.Body).Decode(&message)
 
-	fmt.Printf("Receive new msg from GUI%v",message)
+	fmt.Printf("Receive new msg from GUI%v", message)
 	g.PostNewMessage(message.Text)
 
 	g.AckPost(true, w)
@@ -107,7 +113,7 @@ func (g *Gossiper) PostNewMessage(text string) {
 
 	// Create Simple msg
 	message := &message.Message{
-		Text : text,
+		Text: text,
 	}
 
 	// Trigger handle simple msg
@@ -123,12 +129,12 @@ func (g *Gossiper) NodeGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	peers.Nodes = g.GetPeers()
-    
+
 	json.NewEncoder(w).Encode(peers)
 }
 
-func (g *Gossiper) GetPeers() ([]string) {
-     
+func (g *Gossiper) GetPeers() []string {
+
 	// TODO: Decide whether need to lock
 	return g.Peers.Peers
 }
@@ -159,7 +165,6 @@ func (g *Gossiper) IDGetHandler(w http.ResponseWriter, r *http.Request) {
 
 	enableCors(&w)
 	var ID struct {
-
 		ID string `json:"id"`
 	}
 
@@ -183,12 +188,12 @@ func (g *Gossiper) RoutableGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	peers.Nodes = g.GetRoutable()
-    
+
 	json.NewEncoder(w).Encode(peers)
 }
 
-func (g *Gossiper) GetRoutable() ([]string) {
-     
+func (g *Gossiper) GetRoutable() []string {
+
 	routable := make([]string, 0)
 	for k, _ := range g.Dsdv.Map {
 
@@ -226,7 +231,6 @@ func (g *Gossiper) PrivateMsgSendHandler(w http.ResponseWriter, r *http.Request)
 	enableCors(&w)
 
 	var messageReceived struct {
-
 		Text string
 		Dest string
 	}
@@ -235,8 +239,8 @@ func (g *Gossiper) PrivateMsgSendHandler(w http.ResponseWriter, r *http.Request)
 
 	msg := &message.Message{
 
-		Text : messageReceived.Text,
-		Destination : &messageReceived.Dest,
+		Text:        messageReceived.Text,
+		Destination: &messageReceived.Dest,
 	}
 	fmt.Println("TRIGGER HANDLING PRIVATE")
 	go g.HandleClient(msg)
@@ -261,10 +265,10 @@ func (g *Gossiper) ShareFileHandler(w http.ResponseWriter, r *http.Request) {
 			tx, _ := g.FileSharer.CreateIndexFile(fileName)
 			round := g.Round
 			g.SendTLC(*tx, round)
-		
+
 		} else {
 			tx, _ := g.FileSharer.CreateIndexFile(fileName)
-			g.TransactionSendCh<- tx
+			g.TransactionSendCh <- tx
 		}
 	}(&fileName.Name)
 
@@ -277,7 +281,7 @@ func (g *Gossiper) AckPost(success bool, w http.ResponseWriter) {
 	var response struct {
 		Success bool `json:"success"`
 	}
-	response.Success = success 
+	response.Success = success
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -286,8 +290,7 @@ func (g *Gossiper) RequestFileHandler(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
 
 	var msg struct {
-
-		Dest string
+		Dest     string
 		FileName string
 		MetaHash string
 	}
@@ -335,7 +338,7 @@ func (g *Gossiper) DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the metahash of the file
 	g.FileSharer.Searcher.TargetMetahash.Mux.Lock()
-	metahash := g.FileSharer.Searcher.TargetMetahash.Map["_SharedFiles/" + fileName.Name]
+	metahash := g.FileSharer.Searcher.TargetMetahash.Map["_SharedFiles/"+fileName.Name]
 	fmt.Println(fileName)
 	g.FileSharer.Searcher.TargetMetahash.Mux.Unlock()
 	fmt.Printf("Requesting %s\n", hex.EncodeToString(metahash))
@@ -349,11 +352,71 @@ func (g *Gossiper) VoteHandler(w http.ResponseWriter, r *http.Request) {
 
 	enableCors(&w)
 
-	var castBallot message.CastBallot
+	var csContainer struct {
+		Vote message.CastBallot `json:"vote"`
+	}
 
-	json.NewDecoder(r.Body).Decode(&castBallot)
+	json.NewDecoder(r.Body).Decode(&csContainer)
 
-	fmt.Printf("GET VOTE FROM %s VOTING FOR %s", castBallot.VoterUuid, castBallot.VoteHash)
+	voteRes := csContainer.Vote
 
-	go g.HandleReceivingVote(&castBallot)
+	fmt.Printf("GET VOTE FROM %s VOTING FOR %s", voteRes.VoterUuid, voteRes.VoteHash)
+
+	go g.HandleReceivingVote(&voteRes)
+
+	g.AckPost(true, w)
+}
+
+type PartialKeyContainer struct {
+	Name       string   `json:"name"`
+	PartialKey *big.Int `json:"partialkey"`
+}
+
+func (g *Gossiper) PartialKeyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("wrong method")
+	}
+
+	var comingPartialK struct {
+		Partial PartialKeyContainer `json:"partial"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&comingPartialK)
+
+	name := comingPartialK.Partial.Name
+	partialK := comingPartialK.Partial.PartialKey
+
+	fmt.Println(name)
+	fmt.Println(partialK)
+
+	_, ok := g.PartialKeyMap[name]
+
+	if ok {
+		fmt.Printf("The partial key for election %s has been existed", name)
+		g.AckPost(true, w)
+		return
+	}
+
+	g.PartialKeyMap[name] = partialK
+	g.AckPost(true, w)
+}
+
+func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("wrong method")
+	}
+
+	var electionEnd struct {
+		Elec string `josn:"elec"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&electionEnd)
+
+	electionToEnd := electionEnd.Elec
+
+	fmt.Println("++++++++++++++")
+
+	fmt.Println(electionToEnd)
+
+	g.AckPost(true, w)
 }

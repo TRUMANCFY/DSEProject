@@ -3,16 +3,18 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/LiangweiCHEN/Peerster/fileSharing"
-	"github.com/LiangweiCHEN/Peerster/gossiper"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/network"
-	"github.com/LiangweiCHEN/Peerster/routing"
+	"math/big"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/TRUMANCFY/DSEProject/Peerster/fileSharing"
+	"github.com/TRUMANCFY/DSEProject/Peerster/gossiper"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/network"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 /** Global variable **/
@@ -27,6 +29,7 @@ var numPeers int
 var hw3ex2 bool
 var hw3ex3 bool
 var ackAll bool
+
 func input() (UIPort string, GuiPort string, gossipAddr string, name string, peers []string, simple, hw3ex2, hw3ex3 bool, antiEntropy int, rtimer int, sharedFilePath string,
 	stubbornTimeout int, numPeers int, ackAll bool) {
 
@@ -46,7 +49,7 @@ func input() (UIPort string, GuiPort string, gossipAddr string, name string, pee
 	flag.BoolVar(&simple, "simple", false, "Simple broadcast or not")
 
 	flag.BoolVar(&hw3ex2, "hw3ex2", false, "Whether run in mode for homework 3 exercise 2")
-	
+
 	flag.BoolVar(&hw3ex3, "hw3ex3", false, "Whether run in mode for homework 3 exercise 3")
 
 	flag.IntVar(&antiEntropy, "antiEntropy", 10, "antiEntroypy trigger period")
@@ -63,8 +66,10 @@ func input() (UIPort string, GuiPort string, gossipAddr string, name string, pee
 
 	// Conduct parameter retreival
 	flag.Parse()
-	
-	if hw3ex3 { fmt.Printf("We are in hw3ex3") }
+
+	if hw3ex3 {
+		fmt.Printf("We are in hw3ex3")
+	}
 	fmt.Printf("Number of peers is %d\n", numPeers)
 	// Convert peers to slice
 	peers = strings.Split(peers_str, ",")
@@ -93,10 +98,10 @@ func InitGossiper(UIPort, gossipAddr, name string, simple bool, peers []string, 
 	}
 
 	/*
-	if !hw3ex2 && !hw3ex3 {
-		fmt.Println("We are not in hw3ex2 or hw3ex3")
-		numPeers = 1
-	}
+		if !hw3ex2 && !hw3ex3 {
+			fmt.Println("We are not in hw3ex2 or hw3ex3")
+			numPeers = 1
+		}
 	*/
 	// Create gossiper
 	g = &gossiper.Gossiper{
@@ -154,19 +159,20 @@ func InitGossiper(UIPort, gossipAddr, name string, simple bool, peers []string, 
 		StubbornTimeout: stubbornTimeout,
 		NumPeers:        numPeers,
 		TLCClock: &gossiper.TLCClock{
-			Clock : make(map[string]int),
-			Map : make(map[string]map[uint32]int),
+			Clock: make(map[string]int),
+			Map:   make(map[string]map[uint32]int),
 		},
-		TLCRoundCh : make(chan struct{}),
-		WrappedTLCCh : make(chan *gossiper.WrappedTLCMessage),
-		ConfirmedMessageCh : make(chan *message.TLCMessage, 1000),
-		TransactionSendCh : make(chan *message.TxPublish),
-		Hw3ex2 : hw3ex2,
-		Hw3ex3 : hw3ex3,
-		AckAll : ackAll,
-		MsgBuffer : gossiper.MsgBuffer{
-			Msg : make([]string, 0),
+		TLCRoundCh:         make(chan struct{}),
+		WrappedTLCCh:       make(chan *gossiper.WrappedTLCMessage),
+		ConfirmedMessageCh: make(chan *message.TLCMessage, 1000),
+		TransactionSendCh:  make(chan *message.TxPublish),
+		Hw3ex2:             hw3ex2,
+		Hw3ex3:             hw3ex3,
+		AckAll:             ackAll,
+		MsgBuffer: gossiper.MsgBuffer{
+			Msg: make([]string, 0),
 		},
+		PartialKeyMap: make(map[string]*big.Int),
 	}
 
 	g.FileSharer = &fileSharing.FileSharer{

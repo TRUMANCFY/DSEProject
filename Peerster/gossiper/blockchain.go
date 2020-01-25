@@ -6,8 +6,8 @@ import (
 	"time"
 	"math"
 	"strings"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/routing"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 func (g *Gossiper) HandleTLCMessage(wrapped_pkt *message.PacketIncome) {

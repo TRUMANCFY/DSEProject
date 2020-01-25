@@ -9,9 +9,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/LiangweiCHEN/Peerster/network"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/routing"
+	"github.com/TRUMANCFY/DSEProject/Peerster/network"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 type FileIndexer struct {

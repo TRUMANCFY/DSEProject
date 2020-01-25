@@ -32,9 +32,16 @@
             <b-form-select v-model="selected" :options="elections" :select-size="6" style='width: 40%;'></b-form-select>
             <button class="btn btn-primary" @click="goVote" style='margin-left:10px'>Go to vote</button>
         </div>
+
+        <div class='form-group' style='margin-top: 10px;'>
+            <h5> End an election </h5>
+            <b-form-select v-model="selectedCreate" :options="electionCreate" :select-size="2" style='width: 40%;'></b-form-select>
+            <button class="btn btn-primary" @click="endElection" style='margin-left:10px'> End </button>
+        </div>
+
          <div class='form-group' style='margin-top: 10px;'>
             <h5> View election result </h5>
-            <b-form-select v-model="selectedResult" :options="electionsFinish" :select-size="6" style='width:40%;'></b-form-select>
+            <b-form-select v-model="selectedResult" :options="electionsFinish" :select-size="3" style='width:40%;'></b-form-select>
             <button class="btn btn-primary" @click="viewResult" style='margin-left:10px'> View </button>
         </div>
     </div>
@@ -54,7 +61,9 @@ export default {
             elections: [],
             selected: null,
             selectedResult: null,
+            selectedCreate: null,
             electionsFinish: [],
+            electionCreate: [],
         }
     },
     computed: {
@@ -95,6 +104,19 @@ export default {
                 }
             });
 
+            var electionCreate = [];
+            
+            newElections.map(e => {
+                if (e.creator == self.user.id) {
+                    electionCreate.push(e.name)
+                }
+            })
+
+            if (electionCreate.length != self.electionCreate.length) {
+                self.electionCreate = electionCreate;
+            }
+            
+
             if (newElections.length != self.elections.length) {
                 self.elections = newElections;
                 
@@ -104,9 +126,6 @@ export default {
                 });
             }
 
-            // self.elections.forEach(element => {
-            //     element['text'] = element['name'];
-            // });
         },
         createElection: function() {
             this.$router.push('/create')
@@ -135,8 +154,34 @@ export default {
                 self.electionsFinish = electionsF;
             }
         },
-        viewResult: function() {
+        endElection: async function() {
+            console.log('end')
+            var self = this;
 
+            if (self.selectedCreate == null) {
+                alert("Please select vote to end")
+                return
+            }
+
+            console.log(self.selectedCreate)
+
+            var payload = {
+                'electionend': self.selectedCreate,
+            }
+
+            var electionEnd = await fetch('/endvote', {method: 'POST', body: JSON.stringify(payload), mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    return '';
+                }
+            });
+        },
+        viewResult: async function() {
+
+            if (self.selectedResult == null) {
+                alert("Please select vote to view")
+                return
+            }
         }
     },
     mounted: function() {
@@ -148,6 +193,7 @@ export default {
 
         setInterval(this.getElection, 100)
         setInterval(this.getElectionFinish, 100)
+        // setInterval(this.getElectionCreate, 100)
     }
 };
 </script>

@@ -2,7 +2,7 @@ package gossiper
 
 import (
 	"fmt"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 func (g *Gossiper) HandlePrivateMsg(wrapped_pkt *message.PacketIncome) {

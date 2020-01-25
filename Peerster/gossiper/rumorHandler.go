@@ -3,8 +3,8 @@ package gossiper
 import (
 	"fmt"
 	"strconv"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/routing"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 func (g *Gossiper) HandleRumor(wrapped_pkt *message.PacketIncome) {

@@ -3,7 +3,7 @@ package gossiper
 
 import (
 	"strconv"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 

@@ -5,7 +5,7 @@ import (
 	"time"
 	"math/rand"
 	"strconv"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 func (g *Gossiper) MongerRumor(wrappedMessage *message.WrappedRumorTLCMessage, target string, excluded []string) {

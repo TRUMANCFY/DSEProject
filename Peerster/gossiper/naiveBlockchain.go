@@ -1,7 +1,7 @@
 package gossiper
 
 import (
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 	"math/rand"
 	"encoding/binary"
 	"crypto/sha256"

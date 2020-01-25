@@ -86,8 +86,36 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 
 	// encode
 	vote, _ := NewCastBallot(electionPk, answers.Answers)
-	fmt.Print(vote.Vote.Answers)
+
+	// who vote it. election, vote
+
+	vote.VoterUuid = answers.User
+
+	vote.Vote.ElectionUuid = answers.Election
+
+	v.SendEncrypted(vote)
+
 	v.AckPost(true, w)
+}
+
+func (v *Voter) SendEncrypted(vote *CastBallot) {
+	trustees := make([]string, 3)
+
+	trustees[0] = "http://127.0.0.1:8000/vote"
+	trustees[1] = "http://127.0.0.1:8001/vote"
+	trustees[2] = "http://127.0.0.1:8002/vote"
+
+	var sendVal map[string]CastBallot
+
+	var jsonVal []byte
+
+	for _, t := range trustees {
+		sendVal = map[string]CastBallot{"vote": *vote}
+		jsonVal, _ = json.Marshal(sendVal)
+
+		resp, _ := http.Post(t, "application/json", bytes.NewBuffer(jsonVal))
+		fmt.Println(resp)
+	}
 }
 
 func (v *Voter) CreateElection(w http.ResponseWriter, r *http.Request) {
@@ -136,6 +164,33 @@ func (v *Voter) CreateElection(w http.ResponseWriter, r *http.Request) {
 	v.AckPost(true, w)
 }
 
+func (v *Voter) EndVote(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("Wrong method")
+	}
+	var election struct {
+		Electionend string `json:"electionend"`
+	}
+	json.NewDecoder(r.Body).Decode(&election)
+
+	fmt.Println("===========")
+	fmt.Println(election.Electionend)
+
+	trustees := make([]string, 3)
+
+	trustees[0] = "http://127.0.0.1:8000/endvote"
+	trustees[1] = "http://127.0.0.1:8001/endvote"
+	trustees[2] = "http://127.0.0.1:8002/endvote"
+
+	for _, target := range trustees {
+		values := map[string]string{"elec": election.Electionend}
+		jsonValue, _ := json.Marshal(values)
+		http.Post(target, "application/json", bytes.NewBuffer(jsonValue))
+	}
+
+	v.AckPost(true, w)
+}
+
 func (v *Voter) AckPost(success bool, w http.ResponseWriter) {
 	var response struct {
 		Success bool `json:"success"`
@@ -148,6 +203,7 @@ func (v *Voter) ListenToGui() {
 	r := mux.NewRouter()
 	r.HandleFunc("/vote", v.CollectVote).Methods("POST")
 	r.HandleFunc("/createElection", v.CreateElection).Methods("POST")
+	r.HandleFunc("/endvote", v.EndVote).Methods("POST")
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/frontend/dist/"))))
 	srv := &http.Server{
 		Handler:           r,

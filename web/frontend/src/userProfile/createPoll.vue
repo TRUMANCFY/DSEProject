@@ -97,8 +97,6 @@ export default {
         submitElection: async function() {
             var self = this;
 
-            console.log(self.questionList)
-
             var electionOptions = {
                 name: self.electionName,
                 description: self.electionDescription,

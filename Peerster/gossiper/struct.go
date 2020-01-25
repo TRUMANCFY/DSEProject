@@ -2,7 +2,7 @@ package gossiper
 
 import (
 	"sync"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 
 )
 
