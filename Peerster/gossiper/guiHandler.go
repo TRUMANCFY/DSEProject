@@ -407,7 +407,7 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var electionEnd struct {
-		Elec string `josn:"elec"`
+		Elec string `json:"elec"`
 	}
 
 	json.NewDecoder(r.Body).Decode(&electionEnd)
@@ -420,3 +420,4 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 
 	g.AckPost(true, w)
 }
+
