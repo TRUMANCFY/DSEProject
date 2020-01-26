@@ -294,6 +294,37 @@ type CastBallot struct {
 	VoterUuid string `json:"voter_uuid"`
 }
 
+func (cb *CastBallot) BigInt2Str() {
+	/* This func convert bigint in ballot to string */
+
+	for _, answer := range cb.Vote.Answers {
+		// Convert all big int to string
+		answer.ChoicesStr = make([]*CiphertextStr, len(answer.Choices))
+		for i, choice := range answer.Choices {
+			answer.ChoicesStr[i] = NewCiphertextStr(choice.Alpha, choice.Beta)
+		}
+
+		// Remove al big int pointers
+		answer.Choices = make([]*Ciphertext, 0)
+	}
+}
+
+func (cb *CastBallot) Str2BigInt() {
+	/* This func convert string to big int */
+
+	for _, answer := range cb.Vote.Answers {
+		// Convert all string to big int
+		answer.Choices = make([]*Ciphertext, len(answer.ChoicesStr))
+		for i, choiceStr := range answer.ChoicesStr {
+			answer.Choices[i] = NewCiphertext(choiceStr.Alpha, choiceStr.Beta)
+		}
+
+		// Remove all string pointers
+		answer.ChoicesStr = make([]*CiphertextStr, 0)
+	}
+
+	return
+}
 // A Ballot is a cryptographic vote in an Election.
 type Ballot struct {
 	// Answers is a list of answers to the Election specified by
@@ -313,6 +344,7 @@ type EncryptedAnswer struct {
 	// Choices is a list of votes for each choice in a Question. Each choice
 	// is encrypted with the Election.PublicKey.
 	Choices []*Ciphertext `json:"choices"`
+	ChoicesStr []*CiphertextStr
 
 	// IndividualProofs gives a proof that each corresponding entry in
 	// Choices is well formed: this means that it is either 0 or 1. So, each
@@ -350,6 +382,10 @@ type Ciphertext struct {
 	Beta *big.Int `json:"beta"`
 }
 
+type CiphertextStr struct {
+	Alpha *string
+	Beta *string
+}
 type Block struct {
 
 	// Hash of previous block

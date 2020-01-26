@@ -311,6 +311,7 @@ func (g *Gossiper) HandleReceivingVote(v *message.CastBallot) {
 	/*
 		This func add the castballot received into the buffer
 	*/
+	v.BigInt2Str()
 
 	fmt.Printf("Handle receiving Voter %s\n", v.VoterUuid)
 	g.Blockchain.BufferMux.Lock()
@@ -331,6 +332,10 @@ func (bc *Blockchain) GetCastBallots() (castBallots []*message.CastBallot) {
 	for i := 1; i < len(bc.Blocks); i += 1 {
 
 		castBallots[i-1] = bc.Blocks[i].CastBallot
+	}
+
+	for _, cb := range castBallots{
+		cb.Str2BigInt()
 	}
 	bc.BlockMux.Unlock()
 	return
