@@ -386,6 +386,41 @@ type CiphertextStr struct {
 	Alpha *string
 	Beta *string
 }
+
+func NewCiphertextStr(alpha *big.Int, beta *big.Int) (cs *CiphertextStr) {
+
+	alphaStr := alpha.String()
+	betaStr := beta.String()
+	cs = &CiphertextStr{
+		Alpha: &alphaStr,
+		Beta: &betaStr,
+	}
+	return
+}
+
+func NewCiphertext(alpha, beta *string) (ct *Ciphertext) {
+
+	alphaBigInt := new(big.Int)
+	betaBigInt := new(big.Int)
+
+	alphaBigInt, err := alphaBigInt.SetString(*alpha, 10)
+	if err {
+		fmt.Println("Convert alpha string to big int err")
+		return
+	}
+	betaBigInt, err = betaBigInt.SetString(*beta, 10)
+	if err {
+		fmt.Println("Convert beta string to big int err")
+		return
+	}
+
+	ct = &Ciphertext{
+		Alpha: alphaBigInt,
+		Beta: betaBigInt,
+	}
+
+	return 
+}
 type Block struct {
 
 	// Hash of previous block
