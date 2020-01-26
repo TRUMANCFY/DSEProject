@@ -17,9 +17,34 @@ type Server struct {
 	listElection []Election
 }
 
+type KeyStr struct {
+	// Generator is the generator element g used in ElGamal encryptions.
+	Generator string `json:"g"`
+
+	// Prime is the prime p for the group used in encryption.
+	Prime string `json:"p"`
+
+	// ExponentPrime is another prime that specifies the group of exponent
+	// values in the exponent of Generator. It is used in challenge
+	// generation and verification.
+	ExponentPrime string `json:"q"`
+
+	// PublicValue is the public-key value y used to encrypt.
+	PublicValue string `json:"y"`
+}
+
+func ConvertBigIntToStr(key *Key) KeyStr {
+	return KeyStr{
+		Generator:     key.Generator.String(),
+		Prime:         key.Prime.String(),
+		ExponentPrime: key.ExponentPrime.String(),
+		PublicValue:   key.PublicValue.String(),
+	}
+}
+
 type PKContainer struct {
 	Name      string `json:"name"`
-	PublicKey Key    `json:"publickey"`
+	PublicKey KeyStr `json:"publickey"`
 }
 
 type PartialKeyContainer struct {
@@ -77,7 +102,7 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 	// comingElection.Elec.Name
 	pkContainer := PKContainer{
 		Name:      comingElection.Elec.Name,
-		PublicKey: *pk,
+		PublicKey: ConvertBigIntToStr(pk),
 	}
 
 	values := map[string]PKContainer{"pkcontainer": pkContainer}

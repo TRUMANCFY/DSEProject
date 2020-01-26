@@ -267,7 +267,7 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 		Step 1. Add the vote to the blockchain buffer if it is empty
 		Step 2. Inform the blockchain of the vote
 	*/
-
+	fmt.Println("Check point handle receiving")
 	sender, blockRumor := wrapped_pkt.Sender, wrapped_pkt.Packet.BlockRumorMessage
 
 	/* Step 1 */
