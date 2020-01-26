@@ -25,6 +25,8 @@ type PKContainer struct {
 type PartialKeyContainer struct {
 	Name       string   `json:"name"`
 	PartialKey *big.Int `json:"partialkey"`
+	Trust      *Trustee `json:"trust"`
+	Elec       Election `json:"elec"`
 }
 
 const PYTHON_SERVER = "127.0.0.1:4000"
@@ -68,7 +70,9 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 	// append the election to the public elecrions
 	s.listElection = append(s.listElection, comingElection.Elec)
 
-	// send the public key to python server
+	fmt.Println(comingElection.Elec.Questions)
+
+	elecSend := comingElection.Elec
 
 	// comingElection.Elec.Name
 	pkContainer := PKContainer{
@@ -91,6 +95,8 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 		partialKeyCon := PartialKeyContainer{
 			Name:       comingElection.Elec.Name,
 			PartialKey: trusteeSecrets[i],
+			Trust:      trustees[i],
+			Elec:       elecSend,
 		}
 
 		fmt.Println("=======")

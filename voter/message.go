@@ -1,6 +1,10 @@
 package voter
 
-import "math/big"
+import (
+	"errors"
+	"fmt"
+	"math/big"
+)
 
 // A Trustee represents the public information for one of the keys used to
 // tally and decrypt the election results.
@@ -29,6 +33,9 @@ type Trustee struct {
 
 	// Address of the trustee
 	Address string `json:"address"`
+
+	// Name of election
+	Election string `json:"election"`
 }
 
 type CastBallot struct {
@@ -229,4 +236,48 @@ type Election struct {
 	Secret *big.Int
 
 	Trustees []*Trustee `json:"trustee"`
+}
+
+func (e *Election) Tallier(votes []*CastBallot, trustees []*Trustee) (Result, error) {
+	tallies, _ := e.AccumulateTallies(votes)
+
+	// For each question and each answer, reassemble the tally and search for its value.
+	// Then put this in the results.
+	maxValue := len(votes)
+	result := make([][]int64, len(e.Questions))
+	for i, q := range e.Questions {
+		result[i] = make([]int64, len(q.Answers))
+		for j := range q.Answers {
+			alpha := big.NewInt(1)
+			for k := range trustees {
+				alpha.Mul(alpha, trustees[k].DecryptionFactors[i][j])
+				alpha.Mod(alpha, trustees[k].PublicKey.Prime)
+			}
+
+			beta := new(big.Int).ModInverse(alpha, e.PublicKey.Prime)
+			beta.Mul(beta, tallies[i][j].Beta)
+			beta.Mod(beta, e.PublicKey.Prime)
+
+			// This decrypted value can be anything between g^0 and g^maxValue.
+			// Try all values until we find it.
+			temp := new(big.Int)
+			val := new(big.Int)
+			var v int
+			for v = 0; v <= maxValue; v++ {
+				val.SetInt64(int64(v))
+				temp.Exp(e.PublicKey.Generator, val, e.PublicKey.Prime)
+				if temp.Cmp(beta) == 0 {
+					result[i][j] = int64(v)
+					break
+				}
+			}
+
+			if v > maxValue {
+				fmt.Printf("Couldn't decrypt value (%d, %d)\n", i, j)
+				return nil, errors.New("couldn't decrypt part of the tally")
+			}
+		}
+	}
+
+	return result, nil
 }

@@ -127,6 +127,8 @@ export default {
             })
 
             confirm('The election has been created!')
+
+            this.$router.push('/users')
         }
     },
     mounted: function() {

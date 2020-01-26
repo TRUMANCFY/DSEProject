@@ -1,10 +1,10 @@
 package network
 
 import (
-
-	"net"
 	"fmt"
+	"net"
 	"sync"
+
 	//"strconv"
 	//"time"
 	// "encoding/hex"
@@ -14,19 +14,17 @@ import (
 )
 
 type NetworkHandler struct {
-
-	Conn *net.UDPConn
-	Client_conn *net.UDPConn
-	Addr *net.UDPAddr
-	Send_ch chan *message.PacketToSend
-	Listen_ch chan *message.PacketIncome
+	Conn             *net.UDPConn
+	Client_conn      *net.UDPConn
+	Addr             *net.UDPAddr
+	Send_ch          chan *message.PacketToSend
+	Listen_ch        chan *message.PacketIncome
 	Client_listen_ch chan *message.Message
-	Done_chs *Done_chs
-	RumorTimeoutCh chan *message.PacketToSend
+	Done_chs         *Done_chs
+	RumorTimeoutCh   chan *message.PacketToSend
 }
 
 type Done_chs struct {
-
 	Chs map[string]chan struct{}
 	Mux sync.Mutex
 }
@@ -37,7 +35,7 @@ func (n *NetworkHandler) Send(pkt *message.GossipPacket, dst string) {
 	pkt_to_send := message.PacketToSend{
 
 		Packet: pkt,
-		Addr: dst,
+		Addr:   dst,
 	}
 
 	// Pass pkt to send to send_ch
@@ -47,10 +45,9 @@ func (n *NetworkHandler) Send(pkt *message.GossipPacket, dst string) {
 	return
 }
 
-
 func (n *NetworkHandler) StartSending() {
-	
-	// Get pkt to send from send_ch and 
+
+	// Get pkt to send from send_ch and
 	// create go routine to send it
 
 	for pkt_to_send := range n.Send_ch {
@@ -61,7 +58,7 @@ func (n *NetworkHandler) StartSending() {
 		pkt, err := protobuf.Encode(pkt_to_send.Packet)
 
 		if err != nil {
-
+			fmt.Println("check point 5")
 			fmt.Print(err)
 			return
 		}
@@ -72,14 +69,13 @@ func (n *NetworkHandler) StartSending() {
 
 			fmt.Print(err)
 			return
-		} 
+		}
 
 		n.Conn.WriteToUDP(pkt, addr)
-		
-	}
-	
-}
 
+	}
+
+}
 
 func (n *NetworkHandler) StartListening() {
 
@@ -87,7 +83,7 @@ func (n *NetworkHandler) StartListening() {
 
 	// Listen
 	for {
-		buffer := make([]byte, 9 * 1024)
+		buffer := make([]byte, 9*1024)
 		packet := new(message.GossipPacket)
 		// fmt.Println("Listening")
 		// Try to collect encoded pkt
@@ -101,34 +97,33 @@ func (n *NetworkHandler) StartListening() {
 		}
 
 		// Decode pkt
-		protobuf.Decode(buffer[: size], packet)
+		protobuf.Decode(buffer[:size], packet)
 
 		// Output packet for testing
 		//fmt.Printf("CLIENT MESSAGE %s\n", packet.Rumor.Text)
 
 		/*
-		if packet.DataRequest != nil {
+			if packet.DataRequest != nil {
 
-			fmt.Printf("RECEIVE REQUEST %s", base64.URLEncoding.EncodeToString(packet.DataRequest.HashValue))
-		}
+				fmt.Printf("RECEIVE REQUEST %s", base64.URLEncoding.EncodeToString(packet.DataRequest.HashValue))
+			}
 		*/
 		// Put pkt into listen channel
 		n.Listen_ch <- &message.PacketIncome{
-			Packet : packet,
-			Sender : addr.String(),
+			Packet: packet,
+			Sender: addr.String(),
 		}
 	}
 
 	fmt.Println("Finish listening")
 }
 
-
 func (n *NetworkHandler) StartListeningClient() {
 	// Create buffer and pkt container
 
 	// Listen
 	for {
-		buffer := make([]byte, 8 * 1024)
+		buffer := make([]byte, 8*1024)
 		packet := new(message.Message)
 		// fmt.Println("Listening")
 		// Try to collect encoded pkt
@@ -142,7 +137,7 @@ func (n *NetworkHandler) StartListeningClient() {
 		}
 
 		// Decode pkt
-		protobuf.Decode(buffer[: size], packet)
+		protobuf.Decode(buffer[:size], packet)
 
 		// Output packet for testing
 		// fmt.Println(packet.Request)

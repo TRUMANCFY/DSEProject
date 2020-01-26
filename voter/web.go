@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -49,7 +50,7 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var answers struct {
-		User       string    `json:"user`
+		Voter      int       `json:"voter"`
 		Election   string    `json:"election"`
 		Answers    [][]int64 `json:"answers"`
 		PublicKey  KeyStr    `json:"publickey"`
@@ -77,6 +78,9 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 
 	electionPk.Questions = make([]*Question, 0)
 
+	fmt.Println("====Q&A====")
+	fmt.Println(answers.QuesAndAns)
+
 	for _, q := range answers.QuesAndAns {
 		electionPk.Questions = append(electionPk.Questions, &Question{
 			Answers:  q.Answers,
@@ -84,14 +88,24 @@ func (v *Voter) CollectVote(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	fmt.Println("=====election=====")
+	fmt.Println(electionPk)
+
+	fmt.Println("======answers=====")
+	fmt.Println(answers.Answers)
+
 	// encode
 	vote, _ := NewCastBallot(electionPk, answers.Answers)
 
 	// who vote it. election, vote
 
-	vote.VoterUuid = answers.User
+	vote.VoterUuid = strconv.Itoa(answers.Voter)
+	vote.VoterHash = vote.VoterUuid
+	vote.VoteHash = answers.Election + vote.VoterUuid
 
 	vote.Vote.ElectionUuid = answers.Election
+
+	fmt.Println(vote.Vote.Answers[0].Answer)
 
 	v.SendEncrypted(vote)
 
@@ -105,14 +119,13 @@ func (v *Voter) SendEncrypted(vote *CastBallot) {
 	trustees[1] = "http://127.0.0.1:8001/vote"
 	trustees[2] = "http://127.0.0.1:8002/vote"
 
-	var sendVal map[string]CastBallot
+	fmt.Println(vote.VoterUuid)
+	fmt.Println(vote)
 
-	var jsonVal []byte
+	sendVal := map[string]CastBallot{"vote": *vote}
+	jsonVal, _ := json.Marshal(sendVal)
 
 	for _, t := range trustees {
-		sendVal = map[string]CastBallot{"vote": *vote}
-		jsonVal, _ = json.Marshal(sendVal)
-
 		resp, _ := http.Post(t, "application/json", bytes.NewBuffer(jsonVal))
 		fmt.Println(resp)
 	}

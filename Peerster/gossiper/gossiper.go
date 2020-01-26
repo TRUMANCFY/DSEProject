@@ -57,6 +57,12 @@ type Gossiper struct {
 
 	// partial key mapping
 	PartialKeyMap map[string]*big.Int
+
+	// Trustee mapping
+	TrusteeMap map[string]*message.Trustee
+
+	// Election Map
+	ElectionMap map[string]message.Election
 }
 
 // Gossiper start working

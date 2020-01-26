@@ -1,6 +1,7 @@
 package gossiper
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -360,7 +361,9 @@ func (g *Gossiper) VoteHandler(w http.ResponseWriter, r *http.Request) {
 
 	voteRes := csContainer.Vote
 
-	fmt.Printf("GET VOTE FROM %s VOTING FOR %s", voteRes.VoterUuid, voteRes.VoteHash)
+	fmt.Println(voteRes)
+
+	fmt.Printf("GET VOTE FROM %s VOTING FOR %s \n", voteRes.VoterUuid, voteRes.VoteHash)
 
 	go g.HandleReceivingVote(&voteRes)
 
@@ -368,8 +371,10 @@ func (g *Gossiper) VoteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type PartialKeyContainer struct {
-	Name       string   `json:"name"`
-	PartialKey *big.Int `json:"partialkey"`
+	Name       string           `json:"name"`
+	PartialKey *big.Int         `json:"partialkey"`
+	Trust      *message.Trustee `json:"trust"`
+	Elec       message.Election `json:"elec"`
 }
 
 func (g *Gossiper) PartialKeyHandler(w http.ResponseWriter, r *http.Request) {
@@ -385,20 +390,35 @@ func (g *Gossiper) PartialKeyHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := comingPartialK.Partial.Name
 	partialK := comingPartialK.Partial.PartialKey
+	trustee := comingPartialK.Partial.Trust
+	elec := comingPartialK.Partial.Elec
 
 	fmt.Println(name)
 	fmt.Println(partialK)
+	fmt.Println(trustee)
+	fmt.Println(elec.Questions)
 
-	_, ok := g.PartialKeyMap[name]
+	_, ok1 := g.PartialKeyMap[name]
+	_, ok2 := g.TrusteeMap[name]
 
-	if ok {
+	if ok1 && ok2 {
 		fmt.Printf("The partial key for election %s has been existed", name)
 		g.AckPost(true, w)
 		return
 	}
 
 	g.PartialKeyMap[name] = partialK
+	g.TrusteeMap[name] = trustee
+	g.ElectionMap[name] = elec
+
 	g.AckPost(true, w)
+}
+
+type TallyContainer struct {
+	Trustee *message.Trustee      `json:"trustee"`
+	Vote    []*message.CastBallot `json:"vote"`
+	Src     string                `json:"src"`
+	Elec    message.Election      `json:"elec"`
 }
 
 func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
@@ -407,7 +427,7 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var electionEnd struct {
-		Elec string `josn:"elec"`
+		Elec string `jsonn:"elec"`
 	}
 
 	json.NewDecoder(r.Body).Decode(&electionEnd)
@@ -417,6 +437,49 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("++++++++++++++")
 
 	fmt.Println(electionToEnd)
+
+	CastMessage := g.Blockchain.GetCastBallots()
+
+	fmt.Println(CastMessage)
+
+	Container := make([]*message.CastBallot, 0)
+
+	for _, cm := range CastMessage {
+		if cm.VoterUuid == electionToEnd {
+			Container = append(Container, cm)
+		}
+	}
+
+	fmt.Println(Container)
+
+	// find election
+	elec, _ := g.ElectionMap[electionToEnd]
+
+	trustee, _ := g.TrusteeMap[electionToEnd]
+
+	PartialKey, _ := g.PartialKeyMap[electionToEnd]
+
+	elec.Tally(Container, trustee, PartialKey)
+
+	trustee.Election = electionToEnd
+
+	// send it to the tallier
+	tallyAddress := "http://127.0.0.1:8082/tally"
+
+	tallycon := TallyContainer{
+		Src:     g.GuiPort,
+		Vote:    Container,
+		Trustee: trustee,
+		Elec:    elec,
+	}
+
+	fmt.Println(tallycon)
+
+	values := map[string]TallyContainer{"tally": tallycon}
+	jsonValue, _ := json.Marshal(values)
+	resp, _ := http.Post(tallyAddress, "application/json", bytes.NewBuffer(jsonValue))
+
+	fmt.Println(resp)
 
 	g.AckPost(true, w)
 }

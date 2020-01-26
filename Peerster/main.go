@@ -173,6 +173,8 @@ func InitGossiper(UIPort, gossipAddr, name string, simple bool, peers []string, 
 			Msg: make([]string, 0),
 		},
 		PartialKeyMap: make(map[string]*big.Int),
+		TrusteeMap:    make(map[string]*message.Trustee),
+		ElectionMap:   make(map[string]message.Election),
 	}
 
 	g.FileSharer = &fileSharing.FileSharer{
