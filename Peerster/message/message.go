@@ -300,12 +300,20 @@ func (cb *CastBallot) BigInt2Str() {
 	for _, answer := range cb.Vote.Answers {
 		// Convert all big int to string
 		answer.ChoicesStr = make([]*CiphertextStr, len(answer.Choices))
+		answer.RandomnessStr = make([]*string, len(answer.Randomness))
+
 		for i, choice := range answer.Choices {
 			answer.ChoicesStr[i] = NewCiphertextStr(choice.Alpha, choice.Beta)
 		}
+		for i, r := range answer.Randomness{
+			// Convert all big int to string in randomness
+			result := r.String()
+			answer.RandomnessStr[i] = &result
+		}
 
-		// Remove al big int pointers
+		// Remove all big int pointers
 		answer.Choices = make([]*Ciphertext, 0)
+		answer.Randomness = make([]*big.Int, 0)
 	}
 }
 
@@ -315,12 +323,23 @@ func (cb *CastBallot) Str2BigInt() {
 	for _, answer := range cb.Vote.Answers {
 		// Convert all string to big int
 		answer.Choices = make([]*Ciphertext, len(answer.ChoicesStr))
+		answer.Randomness = make([]*big.Int, len(answer.RandomnessStr))
+
 		for i, choiceStr := range answer.ChoicesStr {
 			answer.Choices[i] = NewCiphertext(choiceStr.Alpha, choiceStr.Beta)
 		}
-
+		for i, r := range answer.RandomnessStr{
+			result := new(big.Int)
+			result, err := result.SetString(*r, 10)
+			if err {
+				fmt.Println("Cannot convert randomness str to big int")
+				return
+			}
+			answer.Randomness[i] = result
+		}
 		// Remove all string pointers
 		answer.ChoicesStr = make([]*CiphertextStr, 0)
+		answer.RandomnessStr = make([]*string, 0)
 	}
 
 	return
@@ -370,6 +389,7 @@ type EncryptedAnswer struct {
 	// deserialized if not present. This must only be present in a spoiled
 	// ballot because SECRECY.
 	Randomness []*big.Int `json:"randomness,omitempty"`
+	RandomnessStr []*string
 }
 
 // A Ciphertext is an ElGamal ciphertext, where g is Key.Generator, r is a
