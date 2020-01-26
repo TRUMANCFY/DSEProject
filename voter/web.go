@@ -220,7 +220,7 @@ func (v *Voter) ListenToGui() {
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/frontend/dist/"))))
 	srv := &http.Server{
 		Handler:           r,
-		Addr:              "127.0.0.1:8080",
+		Addr:              "127.0.0.1:" + v.Port,
 		WriteTimeout:      15 * time.Second,
 		ReadHeaderTimeout: 15 * time.Second,
 	}

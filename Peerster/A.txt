@@ -1,60 +1,17 @@
 Number of peers is 3
 Starting webapp on address http://127.0.0.1:8000
-tally11
-18236123989953182954793243770850140770042516331798835541281473362053
-&{[] 0xc0000d33e0   http://127.0.0.1:8000/partialkey }
-[0xc0000da870]
-{[]  0xc000234200 tally110 0 0}
-GET VOTE FROM 0 VOTING FOR tally110 
-Handle receiving Voter 0
-check point 1
-OUR FITNESS IS 7269329306615838501
-The type of block is *message.Block
-0
-PROPOSING BLOCK WITH VOTER 0 VOTE tally110 
-check point 2
-check point 3
-check point 4
-check point 5
-struct has no serializable fields (field abs) (field Alpha) (field Choices) (field Answers) (field Vote) (field CastBallot) (field Block) (field BlockRumorMessage)++++++++++++++
-tally11
-1
-[]
-[]
-{0xc0000b49c0 [] 8000 {[]  https://example.com t11 2020-01-26 16:54:02.055792 +0100 CET m=+24.049055045 tally11 false 0xc0000d3480 [0xc0000da870] Fake false c2fc143e-7178-4ab7-a332-27496440f4e3 Fake hash 2020-01-26 16:54:02.055932 +0100 CET m=+24.049195008 2020-01-26 16:54:02.055934 +0100 CET m=+24.049196200 8091156226509386472242314901802878500995222458929317438837225396140 [0xc0000b4a20 0xc0000b4a80 0xc0000b4ae0]}}
-&{200 OK 200 HTTP/1.1 1 1 map[Content-Length:[0] Date:[Sun, 26 Jan 2020 15:54:19 GMT]] {} 0 [] false false map[] 0xc000238600 <nil>}
-check point 2
-check point 3
-check point 2
-check point 3
-check point 2
-check point 3
-check point 2
-check point 3
-check point 2
-check point 3
-check point 2
-check point 3
-try
-986709770963795823317703901008199308556291631009230621340627979538
-&{[] 0xc000202fa0   http://127.0.0.1:8000/partialkey }
-[0xc00023e990]
-try
-17540737383470133288799710443840604016774724502393269142612308722752
-&{[] 0xc0000d3b00   http://127.0.0.1:8000/partialkey }
-[0xc0000daa20]
-The partial key for election try has been existedtf
-11366524302780485898835968621549365145391414773267499811078969491484
-&{[] 0xc00013a2a0   http://127.0.0.1:8000/partialkey }
-[0xc00013e2d0]
-{[]  0xc000234e00 tf0 0 0}
-GET VOTE FROM 0 VOTING FOR tf0 
-Handle receiving Voter 0
-check point 1
-++++++++++++++
-tf
-1
-[]
-[]
-{0xc0000ba900 [] 8000 {[]  https://example.com f 2020-01-26 17:36:41.129111 +0100 CET m=+23.986823468 tf false 0xc00013a340 [0xc00013e2d0] Fake false db3d5ec0-a307-4fe2-9f20-ffe5c61f3a5c Fake hash 2020-01-26 17:36:41.12926 +0100 CET m=+23.986972528 2020-01-26 17:36:41.129261 +0100 CET m=+23.986974033 11054075834637675622325307779426019932033163297891754137363882696434 [0xc0000ba960 0xc0000ba9c0 0xc0000baa20]}}
-&{200 OK 200 HTTP/1.1 1 1 map[Content-Length:[0] Date:[Sun, 26 Jan 2020 16:36:56 GMT]] {} 0 [] false false map[] 0xc00014e300 <nil>}
+fengyutest
+18487084739913238309136743247332896205921551778471612414997550431626
+&{[] 0xc000102b40   http://127.0.0.1:8000/partialkey }
+[0xc000108750 0xc0001087e0 0xc000108870]
+{[]  0xc0001046c0 fengyutest1 1 1}
+GET VOTE FROM 1 VOTING FOR fengyutest1 
+BUFFERING VOTER 1
+THE RECORD TO BE PROPOSED HAS VOTERID 1
+OUR FITNESS IS 13302163365901981831
+PROPOSING BLOCK WITH VOTER 1 VOTE fengyutest1{[]  0xc0000229c0 fengyutest0 0 0}
+GET VOTE FROM 0 VOTING FOR fengyutest0 
+BUFFERING VOTER 0
+{[]  0xc000104900 fengyutest2 2 2}
+GET VOTE FROM 2 VOTING FOR fengyutest2 
+BUFFERING VOTER 2

@@ -442,14 +442,15 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(CastMessage)
 
-	Container := make([]*message.CastBallot, 0)
+	// Container := make([]*message.CastBallot, 0)
 
-	for _, cm := range CastMessage {
-		if cm.VoterUuid == electionToEnd {
-			Container = append(Container, cm)
-		}
-	}
+	// for _, cm := range CastMessage {
+	// 	if cm.VoterUuid == electionToEnd {
+	// 		Container = append(Container, cm)
+	// 	}
+	// }
 
+	Container := CastMessage
 	fmt.Println(Container)
 
 	// find election

@@ -305,7 +305,7 @@ func (cb *CastBallot) BigInt2Str() {
 		for i, choice := range answer.Choices {
 			answer.ChoicesStr[i] = NewCiphertextStr(choice.Alpha, choice.Beta)
 		}
-		for i, r := range answer.Randomness{
+		for i, r := range answer.Randomness {
 			// Convert all big int to string in randomness
 			result := r.String()
 			answer.RandomnessStr[i] = &result
@@ -328,10 +328,10 @@ func (cb *CastBallot) Str2BigInt() {
 		for i, choiceStr := range answer.ChoicesStr {
 			answer.Choices[i] = NewCiphertext(choiceStr.Alpha, choiceStr.Beta)
 		}
-		for i, r := range answer.RandomnessStr{
+		for i, r := range answer.RandomnessStr {
 			result := new(big.Int)
-			result, err := result.SetString(*r, 10)
-			if err {
+			result, ok := result.SetString(*r, 10)
+			if !ok {
 				fmt.Println("Cannot convert randomness str to big int")
 				return
 			}
@@ -344,6 +344,7 @@ func (cb *CastBallot) Str2BigInt() {
 
 	return
 }
+
 // A Ballot is a cryptographic vote in an Election.
 type Ballot struct {
 	// Answers is a list of answers to the Election specified by
@@ -362,7 +363,7 @@ type Ballot struct {
 type EncryptedAnswer struct {
 	// Choices is a list of votes for each choice in a Question. Each choice
 	// is encrypted with the Election.PublicKey.
-	Choices []*Ciphertext `json:"choices"`
+	Choices    []*Ciphertext `json:"choices"`
 	ChoicesStr []*CiphertextStr
 
 	// IndividualProofs gives a proof that each corresponding entry in
@@ -388,7 +389,7 @@ type EncryptedAnswer struct {
 	// used to encrypt Answer in EncryptedAnswer. This is not serialized or
 	// deserialized if not present. This must only be present in a spoiled
 	// ballot because SECRECY.
-	Randomness []*big.Int `json:"randomness,omitempty"`
+	Randomness    []*big.Int `json:"randomness,omitempty"`
 	RandomnessStr []*string
 }
 
@@ -404,7 +405,7 @@ type Ciphertext struct {
 
 type CiphertextStr struct {
 	Alpha *string
-	Beta *string
+	Beta  *string
 }
 
 func NewCiphertextStr(alpha *big.Int, beta *big.Int) (cs *CiphertextStr) {
@@ -413,7 +414,7 @@ func NewCiphertextStr(alpha *big.Int, beta *big.Int) (cs *CiphertextStr) {
 	betaStr := beta.String()
 	cs = &CiphertextStr{
 		Alpha: &alphaStr,
-		Beta: &betaStr,
+		Beta:  &betaStr,
 	}
 	return
 }
@@ -423,24 +424,25 @@ func NewCiphertext(alpha, beta *string) (ct *Ciphertext) {
 	alphaBigInt := new(big.Int)
 	betaBigInt := new(big.Int)
 
-	alphaBigInt, err := alphaBigInt.SetString(*alpha, 10)
-	if err {
+	alphaBigInt, ok := alphaBigInt.SetString(*alpha, 10)
+	if !ok {
 		fmt.Println("Convert alpha string to big int err")
 		return
 	}
-	betaBigInt, err = betaBigInt.SetString(*beta, 10)
-	if err {
+	betaBigInt, ok = betaBigInt.SetString(*beta, 10)
+	if !ok {
 		fmt.Println("Convert beta string to big int err")
 		return
 	}
 
 	ct = &Ciphertext{
 		Alpha: alphaBigInt,
-		Beta: betaBigInt,
+		Beta:  betaBigInt,
 	}
 
-	return 
+	return
 }
+
 type Block struct {
 
 	// Hash of previous block

@@ -58,7 +58,7 @@ func (n *NetworkHandler) StartSending() {
 		pkt, err := protobuf.Encode(pkt_to_send.Packet)
 
 		if err != nil {
-			fmt.Println("check point 5")
+			// fmt.Println("check point 5")
 			fmt.Print(err)
 			return
 		}

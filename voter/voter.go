@@ -13,7 +13,9 @@ import (
 	// "github.com/golang/glog"
 )
 
-type Voter struct{}
+type Voter struct {
+	Port string
+}
 
 // NewKeyFromParams uses a given set of parameters to generate a public key.
 func NewKeyFromParams(g *big.Int, p *big.Int, q *big.Int) (*Key, *big.Int, error) {
