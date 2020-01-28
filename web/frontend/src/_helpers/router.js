@@ -14,7 +14,7 @@ Vue.use(Router);
 export const router = new Router({
   mode: 'history',
   routes: [
-    { path: '/', component: HomePage },
+    // { path: '/', component: HomePage },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
     { path: '/users', component: UserProfilePage},
@@ -23,7 +23,7 @@ export const router = new Router({
     { path: '/create', component: CreateVotePage},
 
     // otherwise redirect to home
-    { path: '*', redirect: '/' }
+    { path: '*', redirect: '/login' }
   ]
 });
 

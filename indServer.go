@@ -14,7 +14,7 @@ import (
 )
 
 type Server struct {
-	listElection []Election
+	listElection []ElectionStruct
 }
 
 type KeyStr struct {
@@ -54,9 +54,20 @@ type PartialKeyContainer struct {
 	Elec       Election `json:"elec"`
 }
 
+type PrivateKeyMap struct {
+	Src        string `json:"src"`
+	PrivateKey string `json:"privatekey"`
+}
+
+type ElectionStruct struct {
+	Elec        string          `json:"elec"`
+	PublicKey   KeyStr          `json:"publickey"`
+	PrivateKeys []PrivateKeyMap `json:"privatekeys"`
+}
+
 const PYTHON_SERVER = "127.0.0.1:4000"
 
-func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
+func (s *Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		panic("wrong method")
 		return
@@ -93,7 +104,7 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 	var jsonVal []byte
 
 	// append the election to the public elecrions
-	s.listElection = append(s.listElection, comingElection.Elec)
+	// s.listElection = append(s.listElection, comingElection.Elec)
 
 	fmt.Println(comingElection.Elec.Questions)
 
@@ -114,6 +125,8 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	privateKeys := make([]PrivateKeyMap, 0)
+
 	//send PM POST to each trustee with its secret
 	for i, t := range trustees {
 
@@ -132,11 +145,39 @@ func (s Server) ReceiveElection(w http.ResponseWriter, r *http.Request) {
 
 		http.Post(t.Address, "application/json", bytes.NewBuffer(jsonVal))
 
+		privateKeys = append(privateKeys, PrivateKeyMap{
+			Src:        t.Address,
+			PrivateKey: trusteeSecrets[i].String(),
+		})
+
 	}
+
+	elecStruct := ElectionStruct{
+		Elec:        comingElection.Elec.Name,
+		PublicKey:   ConvertBigIntToStr(pk),
+		PrivateKeys: privateKeys,
+	}
+
+	s.listElection = append(s.listElection, elecStruct)
+
+	fmt.Println("+++++")
+	fmt.Println(s.listElection)
+
 }
 
 func (s *Server) GetElectionInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		panic("wrong method")
+		return
+	}
 
+	var messages struct {
+		Messages []ElectionStruct `json:"messages"`
+	}
+
+	messages.Messages = s.listElection
+
+	json.NewEncoder(w).Encode(messages)
 }
 
 func (s *Server) AckPost(key Key, w http.ResponseWriter) {
@@ -150,9 +191,8 @@ func (s *Server) AckPost(key Key, w http.ResponseWriter) {
 func (s *Server) ListenToGui() {
 	r := mux.NewRouter()
 	r.HandleFunc("/election", s.ReceiveElection).Methods("POST")
-	r.HandleFunc("/getElection", s.GetElectionInfo).Methods("POST")
-	// r.HandleFunc("/createElection", s.CreateElection).Methods("POST")
-	// r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/frontend/dist/"))))
+	r.HandleFunc("/getElection", s.GetElectionInfo).Methods("GET")
+	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/indserver/dist/"))))
 	srv := &http.Server{
 		Handler:           r,
 		Addr:              "127.0.0.1:8081",
@@ -163,7 +203,7 @@ func (s *Server) ListenToGui() {
 }
 
 func main() {
-	listElection := make([]Election, 0)
+	listElection := make([]ElectionStruct, 0)
 	s := &Server{
 		listElection: listElection,
 	}
