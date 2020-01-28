@@ -22,6 +22,7 @@ type TallyContainer struct {
 type Tally struct {
 	Record map[string](map[string]TallyContainer)
 	Mux    *sync.Mutex
+	Res    map[string]message.Result
 }
 
 func (t *Tally) ReceiveTally(w http.ResponseWriter, r *http.Request) {
@@ -71,17 +72,61 @@ func (t *Tally) ReceiveTally(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		fmt.Println(res)
+		// put the result into the container
+		t.Res[elecName] = res
 	}
 
 	t.Mux.Unlock()
 
 }
 
+func (t *Tally) GetElectionResult(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("Wrong Method")
+	}
+
+	// read the election name
+	var comingElection struct {
+		Elec string `json:"elec"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&comingElection)
+
+	elecName := comingElection.Elec
+
+	res, ok := t.Res[elecName]
+
+	fmt.Println(elecName)
+
+	var ResultToSend struct {
+		Res   message.Result `json:"res"`
+		Exist bool           `json:"exist"`
+	}
+
+	if ok {
+		ResultToSend.Exist = ok
+		ResultToSend.Res = res
+	} else {
+		ResultToSend.Exist = ok
+	}
+
+	fmt.Println(res)
+
+	json.NewEncoder(w).Encode(ResultToSend)
+}
+
+func (t *Tally) AckPost(success bool, w http.ResponseWriter) {
+	var response struct {
+		Success bool `json:"success"`
+	}
+	response.Success = success
+	json.NewEncoder(w).Encode(response)
+}
+
 func (t *Tally) ListenToGui() {
 	r := mux.NewRouter()
 	r.HandleFunc("/tally", t.ReceiveTally).Methods("POST")
-	// r.HandleFunc("/createElection", s.CreateElection).Methods("POST")
+	r.HandleFunc("/getresult", t.GetElectionResult).Methods("POST")
 	// r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./web/frontend/dist/"))))
 	srv := &http.Server{
 		Handler:           r,
@@ -93,9 +138,15 @@ func (t *Tally) ListenToGui() {
 }
 
 func main() {
+	res := make(map[string]message.Result)
+	res["test"] = make([][]int64, 0)
+	res["test"] = append(res["test"], []int64{2, 0})
+	res["test"] = append(res["test"], []int64{2, 5})
+
 	t := Tally{
 		Record: make(map[string](map[string]TallyContainer)),
 		Mux:    &sync.Mutex{},
+		Res:    res,
 	}
 
 	t.ListenToGui()

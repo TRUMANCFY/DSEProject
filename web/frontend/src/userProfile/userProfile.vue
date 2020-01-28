@@ -178,10 +178,45 @@ export default {
         },
         viewResult: async function() {
 
+            var self = this;
+
             if (self.selectedResult == null) {
                 alert("Please select vote to view")
                 return
             }
+
+            // try to get the voting result first
+            var payload = {
+                'elec': self.selectedResult,
+            }
+
+            var result = await fetch('http://127.0.0.1:8082/getresult', {method: 'POST', body: JSON.stringify(payload), mode: 'cors'})
+            .then(res => {
+                if (res.ok) {
+                    return res.json();
+                }
+            });
+
+            console.log(result);
+
+            if (!result['exist']) {
+                alert("The result is still collecting!")
+                return
+            }
+
+            // push to router
+            // this.$router.push()
+            var election = {}
+
+            self.elections.map(e => {
+                if (e['name'] == self.selectedResult) {
+                    election = e;
+                }
+            })
+
+            console.log(election)
+
+            this.$router.push({ name: 'result', path: '/result', params: { questionsIn: election, result: result }})
         }
     },
     mounted: function() {
