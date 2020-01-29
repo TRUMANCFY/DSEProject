@@ -8,12 +8,13 @@ import (
 	"strings"
 	"encoding/hex"
 	"github.com/dedis/protobuf"
-	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/LiangweiCHEN/Peerster/message"
 )
 
 
 /* Struct definition */
-func input() (UIPort string, msg string, dest string, file, request, keywords string, budget int, voterid, vote string) {
+func input() (UIPort string, msg string, dest string, file, request, keywords string, budget int,
+				voterid, vote, electionName string) {
 
 	// Set cmd flag value containers
 	flag.StringVar(&UIPort, "UIPort", "8080", "UI port number")
@@ -33,6 +34,7 @@ func input() (UIPort string, msg string, dest string, file, request, keywords st
 	// Parameter for votes
 	flag.StringVar(&voterid, "Voterid", "", "Voter id in string")
 	flag.StringVar(&vote, "Vote", "", "Vote in string")
+	flag.StringVar(&electionName, "Election", "", "Election name")
 	// Parse cmd values
 	flag.Parse()
 
@@ -41,7 +43,7 @@ func input() (UIPort string, msg string, dest string, file, request, keywords st
 
 func main() {
 
-	UIPort, msg, dest, file, request, keywords, budget, voterid, vote := input()
+	UIPort, msg, dest, file, request, keywords, budget, voterid, vote, electionName := input()
 
 	// Handle invalid user input
 	switch {
@@ -51,7 +53,7 @@ func main() {
 	case msg != "" && dest == "" && file == "" && request == "" && keywords == "": // Gossip msg
 	case msg == "" && dest == "" && file == "" && request == "" && keywords != "" && budget > 0: // Search file instruction
 	case msg == "" && dest == "" && file != "" && request != "" && keywords == "": // Download searched file instruction?
-	case voterid != "" && vote != "":												// Blockchain
+	case voterid != "" && vote != "" && electionName != "":							// Blockchain
 	default:
 		fmt.Printf("ERROR (Bad argument combination)")
 		os.Exit(1)
@@ -114,6 +116,7 @@ func main() {
 		Budget : uint64(budget),
 		Voterid : voterid,
 		Vote : vote,
+		ElectionName : electionName,
 	}
 
 	// Encode the msg

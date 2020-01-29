@@ -2,8 +2,9 @@ package gossiper
 
 
 import (
+	"fmt"
 	"strconv"
-	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/LiangweiCHEN/Peerster/message"
 )
 
 
@@ -33,8 +34,10 @@ func (g *Gossiper) HandleStatus(wrappedPkt *message.PacketIncome) {
 	// Step 3. Provide new mongering or Request mongering
 	switch moreUpdated {
 	case 1:
+		fmt.Println("PROVIDING")
 		g.ProvideMongering(peerStatusMap, sender)
 	case -1:
+		fmt.Println("REQUESTING")
 		g.RequestMongering(peerStatusMap, sender)
 	default:
 		// Already handled in Ack
