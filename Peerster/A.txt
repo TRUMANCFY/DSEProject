@@ -1,26 +1,28 @@
 Number of peers is 3
 Starting webapp on address http://127.0.0.1:8000
 fengyu
-10454573945374415516185398751288980862690754265079654044604094498011
-&{[] 0xc0001c87c0   http://127.0.0.1:8000/partialkey }
-[0xc0002286c0 0xc000228750]
-{[]  0xc000022980 fengyu0 0 0}
+1438289488639210868044351541525745162168400041020135025793730070643
+&{[] 0xc0001d66e0   http://127.0.0.1:8000/partialkey }
+[0xc0002566c0 0xc000256750]
+{[]  0xc0001dc680 fengyu0 0 0}
 GET VOTE FROM 0 VOTING FOR fengyu0 
 BUFFERING VOTER 0
 THE RECORD TO BE PROPOSED HAS VOTERID 0
-OUR FITNESS IS 14930528792022818519
+OUR FITNESS IS 2942984995762604649
 PROPOSING BLOCK WITH VOTER 0 VOTE fengyu0RECEIVING BLOCK
 Check point handle receiving
 Receive Proposal from  C with ID 1 for VOTER 0 Relayed by 127.0.0.1:5002 with Block ID 1
 RECEVING BLOCK VOTER 0 VOTE fengyu0
 BUFFERING 0
-Peer fitness is 6779564531265990599
+Peer fitness is 14693073170885249718
 RECEIVED 2 proposals
+RECEIVING BLOCK
+Check point handle receiving
 RECEIVING BLOCK
 Check point handle receiving
 Receive Proposal from  B with ID 1 for VOTER 0 Relayed by 127.0.0.1:5002 with Block ID 1
 RECEVING BLOCK VOTER 0 VOTE fengyu0
-Peer fitness is 15227333193035288092
+Peer fitness is 9780965486468727921
 RECEIVED 3 proposals
     APPENDING BLOCK WITH VOTER UID 0, VOTE HASH fengyu0
 ENTERING ROUND 2
@@ -28,23 +30,26 @@ WE ARE LOOKING AT VOTER 0
 WE ARE LOOKING AT VOTER 0
 RECEIVING BLOCK
 Check point handle receiving
-{[]  0xc000208500 fengyu1 1 1}
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 1 for VOTER 0 Relayed by 127.0.0.1:5001 with Block ID 1
+{[]  0xc0001dc900 fengyu1 1 1}
 GET VOTE FROM 1 VOTING FOR fengyu1 
 BUFFERING VOTER 1
-THE RECORD TO BE PROPOSED HAS VOTERID 1
-OUR FITNESS IS 3884667652393167615
-PROPOSING BLOCK WITH VOTER 1 VOTE fengyu1RECEIVING BLOCK
-Check point handle receiving
 RECEIVING BLOCK
+Check point handle receiving
 Receive Proposal from  B with ID 2 for VOTER 1 Relayed by 127.0.0.1:5001 with Block ID 2
 RECEVING BLOCK VOTER 1 VOTE fengyu1
+BUFFERING 1
+RECEIVING BLOCK
 Check point handle receiving
 Receive Proposal from  C with ID 2 for VOTER 1 Relayed by 127.0.0.1:5002 with Block ID 2
 RECEVING BLOCK VOTER 1 VOTE fengyu1
-BUFFERING 1
-Peer fitness is 15515595082700156838
+THE RECORD TO BE PROPOSED HAS VOTERID 1
+OUR FITNESS IS 2672064750078191980
+PROPOSING BLOCK WITH VOTER 1 VOTE fengyu1Peer fitness is 15515492603272629293
 RECEIVED 2 proposals
-Peer fitness is 10845617188830335062
+Peer fitness is 10845702826389776980
 RECEIVED 3 proposals
     APPENDING BLOCK WITH VOTER UID 1, VOTE HASH fengyu1
 ENTERING ROUND 3
@@ -52,25 +57,23 @@ WE ARE LOOKING AT VOTER 1
 WE ARE LOOKING AT VOTER 1
 RECEIVING BLOCK
 Check point handle receiving
-RECEIVING BLOCK
-Check point handle receiving
-{[]  0xc0000fc200 fengyu2 2 2}
+{[]  0xc0001dca40 fengyu2 2 2}
 GET VOTE FROM 2 VOTING FOR fengyu2 
 BUFFERING VOTER 2
 THE RECORD TO BE PROPOSED HAS VOTERID 2
-OUR FITNESS IS 9740949964414594941
+OUR FITNESS IS 3679647561685171944
 PROPOSING BLOCK WITH VOTER 2 VOTE fengyu2RECEIVING BLOCK
 Check point handle receiving
 Receive Proposal from  C with ID 3 for VOTER 2 Relayed by 127.0.0.1:5001 with Block ID 3
 RECEVING BLOCK VOTER 2 VOTE fengyu2
 BUFFERING 2
-Peer fitness is 213874398347227209
-RECEIVED 2 proposals
 RECEIVING BLOCK
 Check point handle receiving
 Receive Proposal from  B with ID 3 for VOTER 2 Relayed by 127.0.0.1:5002 with Block ID 3
 RECEVING BLOCK VOTER 2 VOTE fengyu2
-Peer fitness is 9784203405245430501
+Peer fitness is 3638591435102056521
+RECEIVED 2 proposals
+Peer fitness is 41112013150239461
 RECEIVED 3 proposals
     APPENDING BLOCK WITH VOTER UID 2, VOTE HASH fengyu2
 ENTERING ROUND 4
@@ -78,10 +81,39 @@ WE ARE LOOKING AT VOTER 2
 WE ARE LOOKING AT VOTER 2
 RECEIVING BLOCK
 Check point handle receiving
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  B with ID 1 for VOTER 0 Relayed by 127.0.0.1:5002 with Block ID 1
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  B with ID 2 for VOTER 1 Relayed by 127.0.0.1:5002 with Block ID 2
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  B with ID 3 for VOTER 2 Relayed by 127.0.0.1:5001 with Block ID 3
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 1 for VOTER 0 Relayed by 127.0.0.1:5001 with Block ID 1
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 2 for VOTER 1 Relayed by 127.0.0.1:5002 with Block ID 2
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  B with ID 3 for VOTER 2 Relayed by 127.0.0.1:5002 with Block ID 3
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 1 for VOTER 0 Relayed by 127.0.0.1:5001 with Block ID 1
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 2 for VOTER 1 Relayed by 127.0.0.1:5002 with Block ID 2
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 1 for VOTER 0 Relayed by 127.0.0.1:5001 with Block ID 1
+RECEIVING BLOCK
+Check point handle receiving
+Receive Proposal from  C with ID 2 for VOTER 1 Relayed by 127.0.0.1:5002 with Block ID 2
 ++++++++++++++
 fengyu
-[0xc00016c5a0 0xc000084de0 0xc00016cd20]
-[0xc00016c5a0 0xc000084de0 0xc00016cd20]
-{0xc00016c2a0 [0xc00016c5a0 0xc000084de0 0xc00016cd20] 8000 {[]  https://example.com  2020-01-29 15:15:25.825322 +0100 CET m=+120.612413721 fengyu false 0xc0001c8860 [0xc0002286c0 0xc000228750] Fake false cbb68559-deb2-49d1-aa70-361c772f2c13 Fake hash 2020-01-29 15:15:25.825437 +0100 CET m=+120.612529070 2020-01-29 15:15:25.825438 +0100 CET m=+120.612530445 10169031454034864569597862416137426295822340022364423490163023532146 [0xc00016c300 0xc00016c360 0xc00016c3c0]}}
-&{200 OK 200 HTTP/1.1 1 1 map[Content-Length:[0] Date:[Wed, 29 Jan 2020 14:15:50 GMT]] {} 0 [] false false map[] 0xc000268000 <nil>}
-struct has no serializable fields (field abs) (field Alpha) (field Choices) (field Answers) (field Vote) (field CastBallot) (field Block) (field BlockRumorMessage)
+[0xc0000b82a0 0xc00019aba0 0xc00019ad80]
+[0xc0000b82a0 0xc00019aba0 0xc00019ad80]
+{0xc00019a240 [0xc0000b82a0 0xc00019aba0 0xc00019ad80] 8000 {[]  https://example.com  2020-01-29 16:41:39.362122 +0100 CET m=+63.181663216 fengyu false 0xc0001d6780 [0xc0002566c0 0xc000256750] Fake false 68c120a4-b73f-4e33-8341-51339979a458 Fake hash 2020-01-29 16:41:39.36224 +0100 CET m=+63.181781052 2020-01-29 16:41:39.362241 +0100 CET m=+63.181782311 23800432445458603237030325089256010522985324979463311419953627302389 [0xc00019a2a0 0xc00019a300 0xc00019a360]}}
+&{200 OK 200 HTTP/1.1 1 1 map[Content-Length:[0] Date:[Wed, 29 Jan 2020 15:43:06 GMT]] {} 0 [] false false map[] 0xc0000a4200 <nil>}
