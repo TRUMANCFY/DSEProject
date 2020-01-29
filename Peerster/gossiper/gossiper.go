@@ -2,14 +2,13 @@ package gossiper
 
 import (
 	"fmt"
-	"math/big"
+	"github.com/LiangweiCHEN/Peerster/fileSharing"
+	"github.com/LiangweiCHEN/Peerster/message"
+	"github.com/LiangweiCHEN/Peerster/network"
+	"github.com/LiangweiCHEN/Peerster/routing"
 	"net"
+	"sync"
 	"time"
-
-	"github.com/TRUMANCFY/DSEProject/Peerster/fileSharing"
-	"github.com/TRUMANCFY/DSEProject/Peerster/message"
-	"github.com/TRUMANCFY/DSEProject/Peerster/network"
-	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 type Gossiper struct {
@@ -37,32 +36,24 @@ type Gossiper struct {
 	TLCAckChs          *TLCAckChs
 	TLCAckCh           chan *message.PacketIncome
 	TLCClock           *TLCClock
-	TLCRoundCh         chan struct{}
-	WrappedTLCCh       chan *WrappedTLCMessage
-	ConfirmedMessageCh chan *message.TLCMessage
-	TransactionSendCh  chan *message.TxPublish
-	Hw3ex2             bool
-	Hw3ex3             bool
-	Round              int
-	AckAll             bool
-	MsgBuffer          MsgBuffer
+	TLCRoundCh			chan struct{}
+	WrappedTLCCh		chan *WrappedTLCMessage
+	ConfirmedMessageCh	chan *message.TLCMessage
+	TransactionSendCh	chan *message.TxPublish
+	Hw3ex2				bool
+	Hw3ex3				bool
+	Round 				int
+	AckAll				bool
+	MsgBuffer			MsgBuffer
 	// Stuff for Que sera consensus
-	Rand       func() int64 // Function to generate random ticket for QSC
-	QSCMessage QSCMessage   // QSC Message holder
-	Acks       int          // Number of acks for QSC proposal
-	Wits       int          // Number of threshold witnessed messages
+	Rand 				func() int64 // Function to generate random ticket for QSC
+	QSCMessage			QSCMessage // QSC Message holder
+	Acks				int // Number of acks for QSC proposal
+	Wits				int // Number of threshold witnessed messages
 
 	// Stuff for blockchain
-	Blockchain *Blockchain
-
-	// partial key mapping
-	PartialKeyMap map[string]*big.Int
-
-	// Trustee mapping
-	TrusteeMap map[string]*message.Trustee
-
-	// Election Map
-	ElectionMap map[string]message.Election
+	Blockchains			map[string]*Blockchain
+	BlockchainsMux		sync.Mutex
 }
 
 // Gossiper start working
@@ -98,7 +89,7 @@ func (gossiper *Gossiper) StartWorking() {
 	go gossiper.HandleTLCAck()
 
 	// Start handling sending candidate blocks
-	go gossiper.HandleSendingBlocks()
+	// go gossiper.HandleSendingBlocks()
 
 	// Start round tlc ack if hw3ex3
 	if gossiper.Hw3ex3 {
@@ -216,7 +207,6 @@ func (gossiper *Gossiper) StartHandling() {
 			case pkt.Packet.BlockRumorMessage != nil:
 				// Handle blockRumorMessage
 				// Pass the block to blockchain handler
-				fmt.Println("RECEIVING BLOCK")
 				go gossiper.HandleReceivingBlock(pkt)
 			}
 
@@ -252,10 +242,12 @@ func (gossiper *Gossiper) StartAntiEntropy() {
 	}()
 }
 
+
 func (g *Gossiper) StartSearching() {
 	go g.TriggerSearch()
 	go g.DistributeSearch()
 }
+
 
 func (g *Gossiper) StartHeartbeat() {
 
