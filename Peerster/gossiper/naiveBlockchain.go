@@ -1,22 +1,22 @@
 package gossiper
 
 import (
-	"github.com/LiangweiCHEN/Peerster/message"
-	"math/rand"
-	"encoding/binary"
+	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
+	"fmt"
+	"math/rand"
 	"sync"
 	"time"
-	"bytes"
-	"fmt"
 
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 type Blockchain struct {
 
 	// Blocks
-	Blocks []*message.Block
+	Blocks   []*message.Block
 	BlockMux sync.Mutex
 	// Number of Peers
 	N int
@@ -43,11 +43,11 @@ type Blockchain struct {
 	Origin string
 
 	// Round map
-	Map map[string]map[int]bool
+	Map    map[string]map[int]bool
 	MapMux sync.Mutex
 
 	// Voter map
-	VoterMap map[string]bool
+	VoterMap    map[string]bool
 	VoterMapMux sync.Mutex
 
 	// Election Name
@@ -57,7 +57,6 @@ type Blockchain struct {
 	Prefix string
 }
 
-
 func Rand() uint64 {
 	buf := make([]byte, 8)
 	rand.Read(buf) // Always succeeds, no need to check error
@@ -66,21 +65,21 @@ func Rand() uint64 {
 
 func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 	/*
-	This func create an instance of blockchain with genesis block
+		This func create an instance of blockchain with genesis block
 	*/
 	// Create the channel
 	bc = &Blockchain{
-		Blocks : make([]*message.Block, 0),
-		NextId : 0,
-		Buffer : make([]*message.CastBallot, 0),
-		InputCh : make(chan *message.CastBallot, 0),
-		SendCh : make(chan *message.Block, 0),
-		ReceiveCh : make(chan *message.Block, 0),
-		N : g.NumPeers,
-		Origin : g.Name,
-		Map : make(map[string]map[int]bool),
-		VoterMap : make(map[string]bool),
-		ElectionName : electionName,
+		Blocks:       make([]*message.Block, 0),
+		NextId:       0,
+		Buffer:       make([]*message.CastBallot, 0),
+		InputCh:      make(chan *message.CastBallot, 0),
+		SendCh:       make(chan *message.Block, 0),
+		ReceiveCh:    make(chan *message.Block, 0),
+		N:            g.NumPeers,
+		Origin:       g.Name,
+		Map:          make(map[string]map[int]bool),
+		VoterMap:     make(map[string]bool),
+		ElectionName: electionName,
 	}
 
 	// For testing purpose
@@ -91,10 +90,10 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 	}
 	// Add genesis block
 	genesisBlock := &message.Block{
-		PrevHash : sha256.Sum256(make([]byte, 0)),
-		CurrentHash : sha256.Sum256(make([]byte, 0)),
-		CastBallot : nil,
-		ElectionName : bc.ElectionName,
+		PrevHash:     sha256.Sum256(make([]byte, 0)),
+		CurrentHash:  sha256.Sum256(make([]byte, 0)),
+		CastBallot:   nil,
+		ElectionName: bc.ElectionName,
 	}
 	bc.BlockMux.Lock()
 	bc.Blocks = append(bc.Blocks, genesisBlock)
@@ -110,28 +109,28 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 	return
 }
 
-func (bc *Blockchain) CheckBlockValidty(b *message.Block) (bool) {
+func (bc *Blockchain) CheckBlockValidty(b *message.Block) bool {
 	/* This func returns true if the block's prevhash is the same as
 	the end of current blockchain's hash */
 
-	return bytes.Compare(b.PrevHash[:], bc.Blocks[len(bc.Blocks) - 1].CurrentHash[:]) == 0
+	return bytes.Compare(b.PrevHash[:], bc.Blocks[len(bc.Blocks)-1].CurrentHash[:]) == 0
 }
 
 func (bc *Blockchain) HandleRound() {
 	/*
-	This function handle rounds of adding blocks into the blockchain
+		This function handle rounds of adding blocks into the blockchain
 	*/
 	voters := make(map[string]bool)
 	for {
 		bc.BufferMux.Lock()
 		if len(bc.Buffer) > 0 {
 			// Get the first Vote that has not been recorded in the blockchain to propagate
-		
+
 			var currentVote *message.CastBallot
 			nextBufferIndex := 0
 			var valid bool
 			// Check whether there is valid vote to propogate
-			for _, currentVote = range bc.Buffer{
+			for _, currentVote = range bc.Buffer {
 				valid = true
 				if _, ok := voters[currentVote.VoterUuid]; ok {
 					valid = false
@@ -143,9 +142,9 @@ func (bc *Blockchain) HandleRound() {
 				}
 			}
 			if nextBufferIndex > len(bc.Buffer) {
-				bc.Buffer = bc.Buffer[0: 0]
+				bc.Buffer = bc.Buffer[0:0]
 			} else {
-				bc.Buffer = bc.Buffer[nextBufferIndex : ]
+				bc.Buffer = bc.Buffer[nextBufferIndex:]
 			}
 			if !valid {
 				// No valid block vote to propose
@@ -158,24 +157,24 @@ func (bc *Blockchain) HandleRound() {
 			fmt.Printf("%s THE RECORD TO BE PROPOSED HAS VOTERID %s\n", bc.Prefix, currentVote.VoterUuid)
 			// Create the block
 			currentBlock := &message.Block{
-				CastBallot : currentVote,
-				PrevHash : bc.Blocks[len(bc.Blocks) - 1].CurrentHash,
-				Fitness : Rand(),
-				Round : bc.NextId,
-				Origin : bc.Origin,
-				ElectionName : bc.ElectionName,
+				CastBallot:   currentVote,
+				PrevHash:     bc.Blocks[len(bc.Blocks)-1].CurrentHash,
+				Fitness:      Rand(),
+				Round:        bc.NextId,
+				Origin:       bc.Origin,
+				ElectionName: bc.ElectionName,
 			}
 			currentBlock.CurrentHash = currentBlock.Hash()
 
 			// Ask the gossiper to send the block
-			bc.SendCh<- currentBlock
+			bc.SendCh <- currentBlock
 
 			// Wait for all peers' proposals
 			count := 1
 			// fmt.Printf("OUR FITNESS IS %d\n", currentBlock.Fitness)
 			receivedMap := make(map[string]bool)
 			for {
-				// Check validity of proposal, here we actually don't need to as 
+				// Check validity of proposal, here we actually don't need to as
 				// all peers are trusted
 				// Update self's block if peer's block has higher fitness value
 				peerBlock := <-bc.ReceiveCh
@@ -207,10 +206,10 @@ func (bc *Blockchain) HandleRound() {
 			bc.BlockMux.Unlock()
 
 			fmt.Printf("%s    APPENDING BLOCK WITH VOTER UID %s, VOTE HASH %s FOR ELECTION %s\n",
-								bc.Prefix,
-								currentBlock.CastBallot.VoterUuid,
-								currentBlock.CastBallot.VoteHash,
-								currentBlock.ElectionName)
+				bc.Prefix,
+				currentBlock.CastBallot.VoterUuid,
+				currentBlock.CastBallot.VoteHash,
+				currentBlock.ElectionName)
 			bc.NextId += 1
 			fmt.Printf("%s ENTERING ROUND %d FOR ELECTION %s\n\n", bc.Prefix, bc.NextId, bc.ElectionName)
 		} else {
@@ -228,11 +227,11 @@ func (bc *Blockchain) CreateBallot(voterid, vote, electionName string) (v *messa
 	voteHashStr := hex.EncodeToString(voteHash[:])
 	voterHashStr := hex.EncodeToString(voterHash[:])
 	v = &message.CastBallot{
-		VoteHash: voteHashStr,
+		VoteHash:  voteHashStr,
 		VoterHash: voterHashStr,
 		VoterUuid: voterid,
-		Vote : &message.Ballot{
-			ElectionUuid : electionName,
+		Vote: &message.Ballot{
+			ElectionUuid: electionName,
 		},
 	}
 
@@ -240,8 +239,8 @@ func (bc *Blockchain) CreateBallot(voterid, vote, electionName string) (v *messa
 }
 
 func (g *Gossiper) GetOrCreateBlockchain(electionName string) (bc *Blockchain) {
-	/* 
-	This function get or create the blockchain corresponding to the election name
+	/*
+		This function get or create the blockchain corresponding to the election name
 	*/
 
 	g.BlockchainsMux.Lock()
@@ -256,8 +255,8 @@ func (g *Gossiper) GetOrCreateBlockchain(electionName string) (bc *Blockchain) {
 }
 func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 	/*
-	This func receives blocks from underlying blockchain layer
-	and send it using gossiper's rumor mongering
+		This func receives blocks from underlying blockchain layer
+		and send it using gossiper's rumor mongering
 	*/
 
 	for block := range sendCh {
@@ -268,8 +267,8 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 		wrappedMessage := &message.WrappedRumorTLCMessage{
 			BlockRumorMessage: &message.BlockRumorMessage{
 				Origin: g.Name,
-				ID:  uint32(len(g.RumorBuffer.Rumors[g.Name]) + 1),
-				Block: block,
+				ID:     uint32(len(g.RumorBuffer.Rumors[g.Name]) + 1),
+				Block:  block,
 			},
 		}
 
@@ -296,23 +295,23 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 			prefix = "\t"
 		}
 		fmt.Printf("%s PROPOSING BLOCK WITH VOTER %s VOTE %s IN ROUND %d FOR ELECTION %s\n",
-																			prefix,
-																			block.CastBallot.VoterUuid,
-																			block.CastBallot.VoteHash,
-																			block.Round,
-																			block.ElectionName)
+			prefix,
+			block.CastBallot.VoterUuid,
+			block.CastBallot.VoteHash,
+			block.Round,
+			block.ElectionName)
 		g.MongerRumor(wrappedMessage, "", []string{})
 	}
 }
 
 func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	/*
-	This func receive blocks from communication layer
-	and inform blockchain layer with the right election name
-	Step 1. Add the vote to corresponding blockchain buffer if it is empty
-	Step 2. Inform the blockchain of the vote
-	Step 3. Monger the block if necessary
-	*/ 
+		This func receive blocks from communication layer
+		and inform blockchain layer with the right election name
+		Step 1. Add the vote to corresponding blockchain buffer if it is empty
+		Step 2. Inform the blockchain of the vote
+		Step 3. Monger the block if necessary
+	*/
 
 	sender, blockRumor := wrapped_pkt.Sender, wrapped_pkt.Packet.BlockRumorMessage
 
@@ -321,7 +320,6 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	// Get or Create the corresponding blockchain
 	bc := g.GetOrCreateBlockchain(b.ElectionName)
 
-	
 	// prefix := ""
 	// if b.ElectionName == "China" {
 	// 	prefix = "\t\t"
@@ -349,17 +347,17 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 
 	// Check whether block has been seen before
 	updated := g.Update(&message.WrappedRumorTLCMessage{
-		BlockRumorMessage : blockRumor,
+		BlockRumorMessage: blockRumor,
 	}, sender)
-	
+
 	defer g.N.Send(&message.GossipPacket{
 		Status: g.StatusBuffer.ToStatusPacket(),
 	}, sender)
 
-	if updated{
+	if updated {
 
 		// Monger it to peer if the block is in last round or this round
-		if b.Round >= bc.NextId - 1 {
+		if b.Round >= bc.NextId-1 {
 			wrappedMessage := &message.WrappedRumorTLCMessage{
 				BlockRumorMessage: blockRumor,
 			}
@@ -367,7 +365,7 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 		}
 
 		// Not update blockchain buffer if the block is not for current round
-		if b.Round != bc.NextId{
+		if b.Round != bc.NextId {
 			return
 		}
 
@@ -377,15 +375,14 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 		} else {
 			prefix = "\t"
 		}
-		
+
 		fmt.Printf("%s ACCEPT RECEVING BLOCK VOTER %s VOTING %s IN ELECTION %s FOR ROUND %d FROM PEER %s\n",
-																		prefix,
-																		b.CastBallot.VoterUuid,
-																		b.CastBallot.VoteHash,
-																		b.ElectionName,
-																		b.Round,
-																		b.Origin)
-	
+			prefix,
+			b.CastBallot.VoterUuid,
+			b.CastBallot.VoteHash,
+			b.ElectionName,
+			b.Round,
+			b.Origin)
 
 		// Check whether the record for the voter already existed in the blockchain
 		bc.VoterMapMux.Lock()
@@ -400,13 +397,13 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 
 		// Add it to buffer if not existed
 		bc.BufferMux.Lock()
-		if (!existed) {
+		if !existed {
 			bc.Buffer = append(bc.Buffer, b.CastBallot)
 		}
 		bc.BufferMux.Unlock()
-	
+
 		// Step 2
-		bc.ReceiveCh<- b
+		bc.ReceiveCh <- b
 	}
 
 	return
@@ -414,10 +411,10 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 
 func (g *Gossiper) HandleReceivingVote(v *message.CastBallot) {
 	/*
-	This func add the vote to the corresponding blockchain's buffer
-	Step 0. Convert big int to string in cast ballot
-	Step 1. Get or Create the corresponding blockchain
-	Step 2. Add the vote to the blockchain's buffer
+		This func add the vote to the corresponding blockchain's buffer
+		Step 0. Convert big int to string in cast ballot
+		Step 1. Get or Create the corresponding blockchain
+		Step 2. Add the vote to the blockchain's buffer
 	*/
 
 	/* Step 0 */
@@ -435,18 +432,17 @@ func (g *Gossiper) HandleReceivingVote(v *message.CastBallot) {
 	return
 }
 
-
 func (bc *Blockchain) GetCastBallots() (castBallots []*message.CastBallot) {
 	/*
-	This func returns a slice of pointer to cast ballots
-	The string representation of big.Int in cast ballots are converted back to big.Int
+		This func returns a slice of pointer to cast ballots
+		The string representation of big.Int in cast ballots are converted back to big.Int
 	*/
-	
-	castBallots = make([]*message.CastBallot, bc.NextId - 1)
+
+	castBallots = make([]*message.CastBallot, bc.NextId-1)
 	bc.BlockMux.Lock()
-	for i := 1; i < len(bc.Blocks); i += 1{
-		
-		castBallots[i - 1] = bc.Blocks[i].CastBallot
+	for i := 1; i < len(bc.Blocks); i += 1 {
+
+		castBallots[i-1] = bc.Blocks[i].CastBallot
 	}
 	for _, cb := range castBallots {
 		cb.Str2BigInt()
@@ -458,9 +454,9 @@ func (bc *Blockchain) GetCastBallots() (castBallots []*message.CastBallot) {
 
 func (g *Gossiper) TerminateElection() {
 	/*
-	This function is triggered after receiving terminating signal for an election
-	Step 1. Return the castBallots
-	Step 2. Terminate the channels
-	Step 3. Terminate blockchain
+		This function is triggered after receiving terminating signal for an election
+		Step 1. Return the castBallots
+		Step 2. Terminate the channels
+		Step 3. Terminate blockchain
 	*/
 }

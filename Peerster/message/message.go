@@ -125,8 +125,9 @@ type Message struct {
 	Budget      uint64
 
 	// Attributes for blockchain
-	Voterid string
-	Vote    string
+	Voterid      string
+	Vote         string
+	ElectionName string
 }
 
 type SimpleMessage struct {
@@ -462,7 +463,7 @@ type Block struct {
 
 	// Election name
 	ElectionName string
-	
+
 	// Ballot
 	CastBallot *CastBallot
 }

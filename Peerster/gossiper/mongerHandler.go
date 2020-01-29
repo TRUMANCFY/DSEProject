@@ -2,10 +2,11 @@ package gossiper
 
 import (
 	"fmt"
-	"time"
 	"math/rand"
 	"strconv"
-	"github.com/LiangweiCHEN/Peerster/message"
+	"time"
+
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
 func (g *Gossiper) MongerRumor(wrappedMessage *message.WrappedRumorTLCMessage, target string, excluded []string) {
@@ -103,7 +104,6 @@ func (g *Gossiper) MongerRumor(wrappedMessage *message.WrappedRumorTLCMessage, t
 	}
 	g.N.Send(toSendPkt, peerAddr)
 }
-
 
 func (g *Gossiper) ProvideMongering(peer_status message.StatusMap, sender string) {
 	// Send to the request sender with the most urgent msg it requires

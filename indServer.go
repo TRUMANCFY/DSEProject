@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -202,11 +203,45 @@ func (s *Server) ListenToGui() {
 	log.Fatal(srv.ListenAndServe())
 }
 
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func RandStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func (s *Server) SendAuth() {
+	ranStr := RandStringRunes(32)
+
+	var trustees = make([]string, 3)
+
+	trustees[0] = "http://127.0.0.1:8000/auth"
+	trustees[1] = "http://127.0.0.1:8001/auth"
+	trustees[2] = "http://127.0.0.1:8002/auth"
+
+	var sendVal map[string]string
+	var jsonVal []byte
+
+	for _, t := range trustees {
+
+		sendVal = map[string]string{"auth": ranStr}
+		jsonVal, _ = json.Marshal(sendVal)
+
+		http.Post(t, "application/json", bytes.NewBuffer(jsonVal))
+	}
+
+}
+
 func main() {
 	listElection := make([]ElectionStruct, 0)
 	s := &Server{
 		listElection: listElection,
 	}
+
+	s.SendAuth()
 
 	s.ListenToGui()
 }

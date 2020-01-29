@@ -55,8 +55,8 @@ type Gossiper struct {
 
 	// Stuff for blockchain
 
-	Blockchains   map[string]*Blockchain
-	BlockchainMux sync.Mutex
+	Blockchains    map[string]*Blockchain
+	BlockchainsMux sync.Mutex
 
 	// partial key mapping
 	PartialKeyMap map[string]*big.Int
@@ -219,6 +219,7 @@ func (gossiper *Gossiper) StartHandling() {
 			case pkt.Packet.BlockRumorMessage != nil:
 				// Handle blockRumorMessage
 				// Pass the block to blockchain handler
+				fmt.Println("RECEVING BLOCKS")
 				go gossiper.HandleReceivingBlock(pkt)
 			}
 

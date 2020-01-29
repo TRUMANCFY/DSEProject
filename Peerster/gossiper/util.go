@@ -3,8 +3,9 @@ package gossiper
 import (
 	"fmt"
 	"math/rand"
-	"github.com/LiangweiCHEN/Peerster/message"
-	"github.com/LiangweiCHEN/Peerster/routing"
+
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
 )
 
 func (g *Gossiper) ForwardPkt(pkt *message.GossipPacket, dest string) (err routing.RoutingErr) {
@@ -20,7 +21,6 @@ func (g *Gossiper) ForwardPkt(pkt *message.GossipPacket, dest string) (err routi
 	g.N.Send(pkt, nextHop)
 	return
 }
-
 
 func (g *Gossiper) SelectRandomPeer(excluded []string, n int) (rand_peer_addr []string, ok bool) {
 	// Select min(n, max_possible) random peers with peers in excluded slice excluded
@@ -69,7 +69,6 @@ func (g *Gossiper) SelectRandomPeer(excluded []string, n int) (rand_peer_addr []
 	return
 }
 
-
 func (gossiper *Gossiper) UpdatePeers(peerAddr string) {
 	// Record new peer with given addr
 
@@ -86,7 +85,6 @@ func (gossiper *Gossiper) UpdatePeers(peerAddr string) {
 	// Put it in self's buffer if it is absent
 	gossiper.Peers.Peers = append(gossiper.Peers.Peers, peerAddr)
 }
-
 
 func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) {
 	// Check which of peer and self is more updated
@@ -106,7 +104,7 @@ func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) 
 	}
 
 	/* Step 2 */
-	for k, v   := range peer_status {
+	for k, v := range peer_status {
 		self_v, ok := g.StatusBuffer.Status[k]
 		// Return peer more updated if not ok or self_v < v
 		if !ok || self_v < v {
@@ -120,7 +118,6 @@ func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) 
 	return
 }
 
-
 func (rb *RumorBuffer) get(origin string, ID uint32) (rumor *message.WrappedRumorTLCMessage) {
 	// Get the rumor or tlc with corresponding id from specified origin
 	rb.Mux.Lock()
@@ -128,7 +125,6 @@ func (rb *RumorBuffer) get(origin string, ID uint32) (rumor *message.WrappedRumo
 	rb.Mux.Unlock()
 	return
 }
-
 
 func (sb *StatusBuffer) ToStatusPacket() (st *message.StatusPacket) {
 	// Construct status packet from local status buffer
@@ -148,7 +144,6 @@ func (sb *StatusBuffer) ToStatusPacket() (st *message.StatusPacket) {
 	return
 }
 
-
 func (g *Gossiper) PrintPeers() {
 
 	outputString := fmt.Sprintf("PEERS ")
@@ -163,7 +158,6 @@ func (g *Gossiper) PrintPeers() {
 	outputString += fmt.Sprintf("\n")
 	fmt.Print(outputString)
 }
-
 
 func (g *Gossiper) Update(wrappedMessage *message.WrappedRumorTLCMessage, sender string) (updated bool) {
 	// This function attempt to update local cache of messages by comparing

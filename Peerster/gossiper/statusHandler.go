@@ -1,12 +1,11 @@
 package gossiper
 
-
 import (
 	"fmt"
 	"strconv"
-	"github.com/LiangweiCHEN/Peerster/message"
-)
 
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+)
 
 func (g *Gossiper) HandleStatus(wrappedPkt *message.PacketIncome) {
 	// Step 1. Convert peer_status to map
@@ -44,7 +43,6 @@ func (g *Gossiper) HandleStatus(wrappedPkt *message.PacketIncome) {
 		// fmt.Printf("IN SYNC WITH %s\n", sender)
 	}
 }
-
 
 func (g *Gossiper) Ack(peer_status_map message.StatusMap, sender string, isSync bool) {
 	// Step 1. Ack pkts being sent to peer but not needed as shown by its status map

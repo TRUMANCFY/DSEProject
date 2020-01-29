@@ -83,7 +83,7 @@ func (n *NetworkHandler) StartListening() {
 
 	// Listen
 	for {
-		buffer := make([]byte, 9*1024)
+		buffer := make([]byte, 20*1024)
 		packet := new(message.GossipPacket)
 		// fmt.Println("Listening")
 		// Try to collect encoded pkt
@@ -96,6 +96,7 @@ func (n *NetworkHandler) StartListening() {
 			return
 		}
 
+		fmt.Println("Receiving packet!!!")
 		// Decode pkt
 		protobuf.Decode(buffer[:size], packet)
 
@@ -123,7 +124,7 @@ func (n *NetworkHandler) StartListeningClient() {
 
 	// Listen
 	for {
-		buffer := make([]byte, 8*1024)
+		buffer := make([]byte, 20*1024)
 		packet := new(message.Message)
 		// fmt.Println("Listening")
 		// Try to collect encoded pkt

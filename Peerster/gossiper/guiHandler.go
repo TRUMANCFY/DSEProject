@@ -56,6 +56,8 @@ func (g *Gossiper) HandleGUI() {
 			Methods("POST", "OPTIONS")
 		r.HandleFunc("/endvote", g.EndVote).
 			Methods("POST", "OPTIONS")
+		r.HandleFunc("/auth", g.Auth).
+			Methods("POST", "OPTIONS")
 		fmt.Printf("Starting webapp on address http://127.0.0.1:%s\n", g.GuiPort)
 
 		srv := &http.Server{
@@ -438,17 +440,9 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(electionToEnd)
 
-	CastMessage := g.Blockchain.GetCastBallots()
+	CastMessage := g.Blockchains[electionToEnd].GetCastBallots()
 
 	fmt.Println(CastMessage)
-
-	// Container := make([]*message.CastBallot, 0)
-
-	// for _, cm := range CastMessage {
-	// 	if cm.VoterUuid == electionToEnd {
-	// 		Container = append(Container, cm)
-	// 	}
-	// }
 
 	Container := CastMessage
 	fmt.Println(Container)
@@ -481,6 +475,24 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 	resp, _ := http.Post(tallyAddress, "application/json", bytes.NewBuffer(jsonValue))
 
 	fmt.Println(resp)
+
+	g.AckPost(true, w)
+}
+
+func (g *Gossiper) Auth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("Wrong Methods")
+	}
+
+	var receivedAuth struct {
+		Auth string `json:"auth"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&receivedAuth)
+
+	auth := receivedAuth.Auth
+
+	fmt.Println(auth)
 
 	g.AckPost(true, w)
 }

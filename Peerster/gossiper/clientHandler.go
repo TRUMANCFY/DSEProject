@@ -3,6 +3,7 @@ package gossiper
 import (
 	"fmt"
 	"strings"
+
 	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
@@ -13,7 +14,7 @@ func (g *Gossiper) HandleClient(msg *message.Message) {
 		fmt.Printf("CLIENT MESSAGE %s\n", msg.Text)
 		g.PrintPeers()
 
-		// Broadcast the simple msg to all the peers 
+		// Broadcast the simple msg to all the peers
 		pkt := &message.GossipPacket{
 			Simple: &message.SimpleMessage{
 				OriginalName:  g.Name,
@@ -101,7 +102,7 @@ func (g *Gossiper) HandleClient(msg *message.Message) {
 		} else {
 			go func(fileName *string) {
 				tx, _ := g.FileSharer.CreateIndexFile(fileName)
-				g.TransactionSendCh<- tx
+				g.TransactionSendCh <- tx
 			}(msg.File)
 		}
 
@@ -121,10 +122,11 @@ func (g *Gossiper) HandleClient(msg *message.Message) {
 		fmt.Printf("CLIENT WANT TO SEARCH FOR %s\n", strings.Join(msg.Keywords, ","))
 		g.FileSharer.Searcher.Search(msg.Keywords, int(msg.Budget))
 
-	case msg.Voterid != "" && msg.Vote != "":
+	case msg.Voterid != "" && msg.Vote != "" && msg.ElectionName != "":
 		// Handle vote
 		fmt.Printf("CLIENT SEND VOTE FROM %s WITH CONTENT %s\n", msg.Voterid, msg.Vote)
-		v := g.Blockchain.CreateBallot(msg.Voterid, msg.Vote)
+		bc := g.GetOrCreateBlockchain(msg.ElectionName)
+		v := bc.CreateBallot(msg.Voterid, msg.Vote, msg.ElectionName)
 		go g.HandleReceivingVote(v)
 	}
 }
