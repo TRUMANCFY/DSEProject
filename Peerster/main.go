@@ -230,7 +230,7 @@ func InitGossiper(UIPort, gossipAddr, name string, simple bool, peers []string, 
 			SearchedFileDownloadCh: make(chan *fileSharing.WrappedDownloadRequest),
 		},
 	}
-	g.Blockchain = g.NewBlockchain()
+	g.Blockchains = make(map[string]*gossiper.Blockchain)
 	return
 }
 

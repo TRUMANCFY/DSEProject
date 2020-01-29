@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"net"
 	"time"
-
+	"sync"
 	"github.com/TRUMANCFY/DSEProject/Peerster/fileSharing"
 	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 	"github.com/TRUMANCFY/DSEProject/Peerster/network"
@@ -53,7 +53,8 @@ type Gossiper struct {
 	Wits       int          // Number of threshold witnessed messages
 
 	// Stuff for blockchain
-	Blockchain *Blockchain
+	Blockchains map[string]*Blockchain
+	BlockchainMux sync.Mutex
 
 	// partial key mapping
 	PartialKeyMap map[string]*big.Int
@@ -67,7 +68,7 @@ type Gossiper struct {
 
 // Gossiper start working
 func (gossiper *Gossiper) StartWorking() {
-
+	
 	// Start network working
 	gossiper.N.StartWorking()
 
