@@ -26,6 +26,8 @@ type Tally struct {
 }
 
 func (t *Tally) ReceiveTally(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("Receive Tally")
 	if r.Method != "POST" {
 		panic("wront type")
 		return
@@ -45,25 +47,25 @@ func (t *Tally) ReceiveTally(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(tallyObj.Tally.Trustee)
 
-	elecName := tallyObj.Tally.Elec.Uuid
+	// elecName := tallyObj.Tally.Elec.Uuid
 
 	vote := tallyObj.Tally.Vote
 
 	elec := tallyObj.Tally.Elec
 
 	// put it in
-	_, ok := t.Record[elecName]
+	_, ok := t.Record[elec.Name]
 
 	if !ok {
-		t.Record[elecName] = make(map[string]TallyContainer)
+		t.Record[elec.Name] = make(map[string]TallyContainer)
 	}
 
-	t.Record[elecName][src] = tallyObj.Tally
+	t.Record[elec.Name][src] = tallyObj.Tally
 
 	trustees := make([]*message.Trustee, 0)
 	// check whether there are all
-	if len(t.Record[elecName]) == 3 {
-		for _, tallyo := range t.Record[elecName] {
+	if len(t.Record[elec.Name]) == 3 {
+		for _, tallyo := range t.Record[elec.Name] {
 			trustees = append(trustees, tallyo.Trustee)
 		}
 		res, err := elec.Tallier(vote, trustees)
@@ -73,7 +75,9 @@ func (t *Tally) ReceiveTally(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// put the result into the container
-		t.Res[elecName] = res
+		t.Res[elec.Name] = res
+
+		fmt.Println(t.Res)
 	}
 
 	t.Mux.Unlock()
