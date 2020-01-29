@@ -460,6 +460,9 @@ type Block struct {
 	// Source
 	Origin string
 
+	// Election name
+	ElectionName string
+	
 	// Ballot
 	CastBallot *CastBallot
 }
