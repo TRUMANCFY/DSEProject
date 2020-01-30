@@ -83,7 +83,7 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 		Map:          make(map[string]map[int]bool),
 		VoterMap:     make(map[string]bool),
 		ElectionName: electionName,
-		Records : make([]string, 0),
+		Records:      make([]string, 0),
 	}
 
 	// For testing purpose
@@ -207,6 +207,7 @@ func (bc *Blockchain) HandleRound() {
 
 			bc.BlockMux.Lock()
 			bc.Blocks = append(bc.Blocks, currentBlock)
+			bc.Records = append(bc.Records, currentBlock.ToString())
 			bc.BlockMux.Unlock()
 
 			fmt.Printf("%s    APPENDING BLOCK WITH VOTER UID %s, VOTE HASH %s FOR ELECTION %s\n",
@@ -268,12 +269,21 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 		// Construct msg to be sent
 		g.RumorBuffer.Mux.Lock()
 		fmt.Println("OBTAIN RUMOR LOCK")
+
+		var proof *message.Proof
+
+		if g.Auth == nil {
+			proof = nil
+		} else {
+			proof = g.Auth.Provide()
+		}
+
 		wrappedMessage := &message.WrappedRumorTLCMessage{
 			BlockRumorMessage: &message.BlockRumorMessage{
 				Origin: g.Name,
 				ID:     uint32(len(g.RumorBuffer.Rumors[g.Name]) + 1),
 				Block:  block,
-				Proof: g.Auth.Provide(),
+				Proof:  proof,
 			},
 		}
 
@@ -322,10 +332,15 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	sender, blockRumor := wrapped_pkt.Sender, wrapped_pkt.Packet.BlockRumorMessage
 
 	/* Step 0 */
-	valid := g.Auth.Verify(blockRumor.Proof)
-	if !valid {
-		return
+
+	if g.Auth != nil {
+		valid := g.Auth.Verify(blockRumor.Proof)
+		if !valid {
+			go g.LogAttack(blockRumor)
+			return
+		}
 	}
+
 	/* Step 1 */
 	b := blockRumor.Block
 	// Get or Create the corresponding blockchain
@@ -461,6 +476,21 @@ func (bc *Blockchain) GetCastBallots() (castBallots []*message.CastBallot) {
 	bc.BlockMux.Unlock()
 
 	return
+}
+
+func (g *Gossiper) LogAttack(blockRumor *message.BlockRumorMessage) {
+	/*
+		This func log attacked in the block
+	*/
+
+	errorPrefix := "ERROR: "
+	errorString := fmt.Sprintf("%s FAKE POST IN ELECTION %s FOR VOTER %s FROM %s \n",
+		errorPrefix,
+		blockRumor.Block.ElectionName,
+		blockRumor.Block.CastBallot.VoterUuid,
+		blockRumor.Block.Origin)
+
+	g.BlockAttackLog = append(g.BlockAttackLog, errorString)
 }
 
 func (g *Gossiper) TerminateElection() {

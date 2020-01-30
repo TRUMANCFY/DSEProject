@@ -231,6 +231,7 @@ func InitGossiper(UIPort, gossipAddr, name string, simple bool, peers []string, 
 		},
 	}
 	g.Blockchains = make(map[string]*gossiper.Blockchain)
+	g.BlockAttackLog = make([]string, 0)
 	return
 }
 

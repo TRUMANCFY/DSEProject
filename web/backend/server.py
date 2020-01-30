@@ -4,6 +4,7 @@ import json
 import argparse
 import logging
 import sys
+import logging
 
 from flask_cors import CORS
 
@@ -19,6 +20,9 @@ votedb = TinyDB('vote.json')
 from flask_mail import Message
 
 app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
 CORS(app)
 
 # def sendConfirmation(user):

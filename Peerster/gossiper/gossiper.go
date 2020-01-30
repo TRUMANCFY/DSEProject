@@ -54,9 +54,11 @@ type Gossiper struct {
 	Wits       int          // Number of threshold witnessed messages
 
 	// Stuff for blockchain
-	Blockchains    map[string]*Blockchain
-	BlockchainsMux sync.Mutex
-	Auth 		   *Auth
+	Blockchains       map[string]*Blockchain
+	BlockAttackLog    []string
+	BlockAttackLogMux sync.Mutex
+	BlockchainsMux    sync.Mutex
+	Auth              *Auth
 
 	// partial key mapping
 	PartialKeyMap map[string]*big.Int

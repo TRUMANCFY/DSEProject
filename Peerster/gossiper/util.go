@@ -1,13 +1,15 @@
 package gossiper
 
 import (
-	"fmt"
-	"math/rand"
-	"github.com/TRUMANCFY/DSEProject/Peerster/message"
-	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
-	"crypto/sha256"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/sha256"
+	"fmt"
+	"math/rand"
+
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/TRUMANCFY/DSEProject/Peerster/routing"
+
 	//"go.dedis.ch/kyber/util/random"
 	"go.dedis.ch/kyber/group/edwards25519"
 )
@@ -25,7 +27,6 @@ func (g *Gossiper) ForwardPkt(pkt *message.GossipPacket, dest string) (err routi
 	g.N.Send(pkt, nextHop)
 	return
 }
-
 
 func (g *Gossiper) SelectRandomPeer(excluded []string, n int) (rand_peer_addr []string, ok bool) {
 	// Select min(n, max_possible) random peers with peers in excluded slice excluded
@@ -74,7 +75,6 @@ func (g *Gossiper) SelectRandomPeer(excluded []string, n int) (rand_peer_addr []
 	return
 }
 
-
 func (gossiper *Gossiper) UpdatePeers(peerAddr string) {
 	// Record new peer with given addr
 
@@ -91,7 +91,6 @@ func (gossiper *Gossiper) UpdatePeers(peerAddr string) {
 	// Put it in self's buffer if it is absent
 	gossiper.Peers.Peers = append(gossiper.Peers.Peers, peerAddr)
 }
-
 
 func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) {
 	// Check which of peer and self is more updated
@@ -111,7 +110,7 @@ func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) 
 	}
 
 	/* Step 2 */
-	for k, v   := range peer_status {
+	for k, v := range peer_status {
 		self_v, ok := g.StatusBuffer.Status[k]
 		// Return peer more updated if not ok or self_v < v
 		if !ok || self_v < v {
@@ -125,7 +124,6 @@ func (g *Gossiper) MoreUpdated(peer_status message.StatusMap) (moreUpdated int) 
 	return
 }
 
-
 func (rb *RumorBuffer) get(origin string, ID uint32) (rumor *message.WrappedRumorTLCMessage) {
 	// Get the rumor or tlc with corresponding id from specified origin
 	rb.Mux.Lock()
@@ -133,7 +131,6 @@ func (rb *RumorBuffer) get(origin string, ID uint32) (rumor *message.WrappedRumo
 	rb.Mux.Unlock()
 	return
 }
-
 
 func (sb *StatusBuffer) ToStatusPacket() (st *message.StatusPacket) {
 	// Construct status packet from local status buffer
@@ -153,7 +150,6 @@ func (sb *StatusBuffer) ToStatusPacket() (st *message.StatusPacket) {
 	return
 }
 
-
 func (g *Gossiper) PrintPeers() {
 
 	outputString := fmt.Sprintf("PEERS ")
@@ -168,7 +164,6 @@ func (g *Gossiper) PrintPeers() {
 	outputString += fmt.Sprintf("\n")
 	fmt.Print(outputString)
 }
-
 
 func (g *Gossiper) Update(wrappedMessage *message.WrappedRumorTLCMessage, sender string) (updated bool) {
 	// This function attempt to update local cache of messages by comparing
@@ -240,22 +235,22 @@ func (g *Gossiper) Update(wrappedMessage *message.WrappedRumorTLCMessage, sender
 
 func (g *Gossiper) StartAuthentication(auth string) {
 	/*
-	This func build DES for gossiper
+		This func build DES for gossiper
 	*/
-
+	fmt.Println("start authentiation")
 	g.Auth = NewAuth(auth)
 }
 
-func NewAuth(auth string) (authenticator *Auth){
+func NewAuth(auth string) (authenticator *Auth) {
 	/*
-	This function create a new authenticator for NIZKF
+		This function create a new authenticator for NIZKF
 	*/
 
 	// Initialize random stream
 	//rng := random.New()
 
 	// Initialize random stream for G and H
-	plainText := []byte(auth[: 16])
+	plainText := []byte(auth[:16])
 	block, err := aes.NewCipher(plainText)
 	if err != nil {
 		fmt.Println(err)
@@ -264,14 +259,14 @@ func NewAuth(auth string) (authenticator *Auth){
 	ivString := "aaaaaaaaaaaaaaaa"
 	iv := []byte(ivString)
 	stream := cipher.NewCFBEncrypter(block, iv)
-	
+
 	// Create new suite
 	suite := edwards25519.NewBlakeSHA256Ed25519()
 
 	// Create secret
 	authBytes := []byte(auth)
 	scal := sha256.Sum256(authBytes[:])
-	x := suite.Scalar().SetBytes(scal[: 32])
+	x := suite.Scalar().SetBytes(scal[:32])
 
 	// Create G and H for NIZKF
 	G := suite.Point().Pick(stream)
@@ -279,33 +274,33 @@ func NewAuth(auth string) (authenticator *Auth){
 	fmt.Printf("G IS %s\n", G)
 	// Create authenticator
 	authenticator = &Auth{
-		auth: auth,
-		X: x,
-		G: G,
-		H: H,
-		XG: suite.Point().Mul(x, G),
-		XH: suite.Point().Mul(x, H),
+		auth:  auth,
+		X:     x,
+		G:     G,
+		H:     H,
+		XG:    suite.Point().Mul(x, G),
+		XH:    suite.Point().Mul(x, H),
 		Suite: suite,
 	}
 
-	return 
+	return
 }
 
 func (a *Auth) Provide() (proof *message.Proof) {
-	/* 
-	This function provide a proof for holding the secret in a non-interative manner
-	Step 1. Select random scalr v and compute vG, vH
-	Step 2. Create challange c
-	Step 3. Compute r = v - xc where v is a randomly selected scalar
-					rG
-					rH
+	/*
+		This function provide a proof for holding the secret in a non-interative manner
+		Step 1. Select random scalr v and compute vG, vH
+		Step 2. Create challange c
+		Step 3. Compute r = v - xc where v is a randomly selected scalar
+						rG
+						rH
 	*/
-
+	fmt.Println("check point 0")
 	/* Step 1 */
 	v := a.Suite.Scalar().Pick(a.Suite.RandomStream())
 	vG := a.Suite.Point().Mul(v, a.G)
 	vH := a.Suite.Point().Mul(v, a.H)
-
+	fmt.Println("check point 1")
 	/* Step 2 */
 	h := a.Suite.Hash()
 	a.XG.MarshalTo(h)
@@ -314,7 +309,7 @@ func (a *Auth) Provide() (proof *message.Proof) {
 	vH.MarshalTo(h)
 	cb := h.Sum(nil)
 	c := a.Suite.Scalar().Pick(a.Suite.XOF(cb))
-
+	fmt.Println("check point 2")
 	/* Step 3 */
 	r := a.Suite.Scalar()
 	r.Mul(a.X, c).Sub(v, r)
@@ -325,20 +320,20 @@ func (a *Auth) Provide() (proof *message.Proof) {
 	vGBytes, _ := vG.MarshalBinary()
 	vHBytes, _ := vH.MarshalBinary()
 	proof = &message.Proof{
-		R: rBytes,
+		R:  rBytes,
 		VG: vGBytes,
 		VH: vHBytes,
-	}	
-
+	}
+	fmt.Println("check point 3")
 	return
 }
 
 func (a *Auth) Verify(proof *message.Proof) (valid bool) {
-	/* 
-	This func check the validity of proof 
-	Step 1. Compute c from xG, xH, vG, vH
-	Step 2. Compute cxG and cxH, rG and rH
-	Step 3. Verify vG = cxG + rG and vH = cxH + rH
+	/*
+		This func check the validity of proof
+		Step 1. Compute c from xG, xH, vG, vH
+		Step 2. Compute cxG and cxH, rG and rH
+		Step 3. Verify vG = cxG + rG and vH = cxH + rH
 	*/
 
 	if proof == nil {

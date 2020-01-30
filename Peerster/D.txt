@@ -1,0 +1,14 @@
+Number of peers is 3
+Starting webapp on address http://127.0.0.1:8003
+Receiving packet!!!
+Receiving packet!!!
+electionFake BUFFERING VOTER 1
+	 THE RECORD TO BE PROPOSED HAS VOTERID 1
+SENDING SENDING SENDING
+OBTAIN RUMOR LOCK
+OBTAIN STATUS LOCK
+	 PROPOSING BLOCK WITH VOTER 1 VOTE 6d4c9cf5e022a07ea8013a4b07a30a88270c65dfd5223ccc3964d9a7b4525008 IN ROUND 1 FOR ELECTION electionFake
+Receiving packet!!!
+PROVIDING
+Receiving packet!!!
+PROVIDING

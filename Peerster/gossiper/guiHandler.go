@@ -60,8 +60,9 @@ func (g *Gossiper) HandleGUI() {
 			Methods("POST", "OPTIONS")
 		r.HandleFunc("/getblockchain", g.HandleGetBlockchain).
 			Methods("GET")
-		r.HandleFunc("/testvote", g.TestVote).
+		r.HandleFunc("/postblockchain", g.TestVote).
 			Methods("POST", "OPTIONS")
+		r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("../web/peerster/dist/"))))
 		fmt.Printf("Starting webapp on address http://127.0.0.1:%s\n", g.GuiPort)
 
 		srv := &http.Server{
@@ -504,7 +505,7 @@ func (g *Gossiper) Authenticate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Gossiper) HandleGetBlockchain(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method == "POST" {
 		panic("Wrong Methods")
 	}
 
@@ -512,7 +513,7 @@ func (g *Gossiper) HandleGetBlockchain(w http.ResponseWriter, r *http.Request) {
 		Blocks []string `json:"blocks"`
 	}
 
-	// Get blockchain records 
+	// Get blockchain records
 	blocksHolder := make([]string, 0)
 	for _, bc := range g.Blockchains {
 		bc.BlockMux.Lock()
@@ -520,23 +521,37 @@ func (g *Gossiper) HandleGetBlockchain(w http.ResponseWriter, r *http.Request) {
 		bc.BlockMux.Unlock()
 	}
 
+	attackMap := make(map[string]bool)
+	g.BlockAttackLogMux.Lock()
+	for _, attackLog := range g.BlockAttackLog {
+		attackMap[attackLog] = true
+	}
+	for k, _ := range attackMap {
+		blocksHolder = append(blocksHolder, k)
+	}
+	g.BlockAttackLogMux.Unlock()
+
 	// Write to response
 	blocks.Blocks = blocksHolder
+
+	// fmt.Println(blocks)
 
 	json.NewEncoder(w).Encode(blocks)
 }
 
 func (g *Gossiper) TestVote(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
+	if r.Method == "GET" {
 		panic("Wrong Methods")
 	}
 
 	// Get proposal
 	var proposal struct {
 		ElectionName string `json:"election"`
-		Voter string		`json:"voter"`
+		Voter        string `json:"voter"`
 	}
 	json.NewDecoder(r.Body).Decode(&proposal)
+
+	// fmt.Println(proposal)
 
 	// Propose vote
 	vote := "trivial"

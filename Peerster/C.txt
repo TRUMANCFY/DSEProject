@@ -1,15 +1,9 @@
 Number of peers is 3
 Starting webapp on address http://127.0.0.1:8002
-Receiving packet!!!
-Receiving packet!!!
+start authentiation
+G IS a3aa4348e3116a0c9631562c2590604e404235eda1c9b91375ba0263daa11c49
+START AUTHENTICATION WITH SECRET XVlBzgbaiCMRAjWwhTHctcuAxhxKQFDa
 XVlBzgbaiCMRAjWwhTHctcuAxhxKQFDa
-Receiving packet!!!
-Receiving packet!!!
-Receiving packet!!!
-Receiving packet!!!
-Receiving packet!!!
-Receiving packet!!!
-Receiving packet!!!
 Receiving packet!!!
 Receiving packet!!!
 Receiving packet!!!

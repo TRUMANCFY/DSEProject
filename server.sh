@@ -1,5 +1,6 @@
 # kill process
 kill -9 $(lsof -i:4000 -t)
+kill -9 $(lsof -i:8083 -t)
 kill -9 $(lsof -i:8082 -t)
 kill -9 $(lsof -i:8081 -t)
 kill -9 $(lsof -i:8080 -t)
@@ -13,6 +14,9 @@ npm run build
 cd ../indserver/
 npm run build
 
+cd ../peerster/
+npm run build
+
 cd ../backend/
 rm election.json
 rm vote.json
@@ -24,11 +28,15 @@ cd ../../
 go build tally.go
 ./tally > tally.txt &
 
+sh ./runPeer.sh &
+
+sleep 10
+
 # build independent server
 go build indServer.go
 ./indServer > indServer.txt &
 
-sh ./runPeer.sh &
+
 
 # run clients
 go build client.go
