@@ -3,7 +3,8 @@ package gossiper
 import (
 	"sync"
 	"github.com/TRUMANCFY/DSEProject/Peerster/message"
-
+	"go.dedis.ch/kyber/group/edwards25519"
+	"go.dedis.ch/kyber"
 )
 
 type PeerStatus struct {
@@ -68,5 +69,16 @@ type WrappedTLCMessage struct {
 
 type MsgBuffer struct {
 	Msg []string
+	Mux sync.Mutex
+}
+
+type Auth struct {
+	auth string			// Authentication message
+	X kyber.Scalar		// Secret of NIZKF
+	G kyber.Point
+	H kyber.Point
+	XG kyber.Point		// xG for NIZKF
+	XH kyber.Point		// xH for NIZKF
+	Suite *edwards25519.SuiteEd25519 // Suite for NIZKF
 	Mux sync.Mutex
 }

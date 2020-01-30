@@ -468,10 +468,24 @@ type Block struct {
 	CastBallot *CastBallot
 }
 
+func (b *Block) ToString() (blockStr string) {
+	blockStr = fmt.Sprintf("Election: %s Round: %d: Voter: %s Hash: %x",
+								b.ElectionName,
+								b.Round,
+								b.CastBallot.VoterUuid,
+								b.CurrentHash)
+	return
+}
+type Proof struct {
+	R []byte
+	VG []byte
+	VH []byte
+}
 type BlockRumorMessage struct {
 	Origin string
-	ID     uint32
-	Block  *Block
+	ID uint32
+	Block *Block
+	Proof *Proof // Ptr to proof
 }
 
 func (b *Block) Hash() (out [32]byte) {

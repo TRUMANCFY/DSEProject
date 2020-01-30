@@ -55,6 +55,9 @@ type Blockchain struct {
 
 	// Election prefix for testing purpose
 	Prefix string
+
+	// String record of blocks
+	Records []string
 }
 
 func Rand() uint64 {
@@ -80,6 +83,7 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 		Map:          make(map[string]map[int]bool),
 		VoterMap:     make(map[string]bool),
 		ElectionName: electionName,
+		Records : make([]string, 0),
 	}
 
 	// For testing purpose
@@ -269,6 +273,7 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 				Origin: g.Name,
 				ID:     uint32(len(g.RumorBuffer.Rumors[g.Name]) + 1),
 				Block:  block,
+				Proof: g.Auth.Provide(),
 			},
 		}
 
@@ -308,6 +313,7 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	/*
 		This func receive blocks from communication layer
 		and inform blockchain layer with the right election name
+		Step 0. Check validty of the block by authenticate the origin
 		Step 1. Add the vote to corresponding blockchain buffer if it is empty
 		Step 2. Inform the blockchain of the vote
 		Step 3. Monger the block if necessary
@@ -315,6 +321,11 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 
 	sender, blockRumor := wrapped_pkt.Sender, wrapped_pkt.Packet.BlockRumorMessage
 
+	/* Step 0 */
+	valid := g.Auth.Verify(blockRumor.Proof)
+	if !valid {
+		return
+	}
 	/* Step 1 */
 	b := blockRumor.Block
 	// Get or Create the corresponding blockchain

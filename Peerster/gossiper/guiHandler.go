@@ -56,7 +56,11 @@ func (g *Gossiper) HandleGUI() {
 			Methods("POST", "OPTIONS")
 		r.HandleFunc("/endvote", g.EndVote).
 			Methods("POST", "OPTIONS")
-		r.HandleFunc("/auth", g.Auth).
+		r.HandleFunc("/auth", g.Authenticate).
+			Methods("POST", "OPTIONS")
+		r.HandleFunc("/getblockchain", g.HandleGetBlockchain).
+			Methods("GET")
+		r.HandleFunc("/testvote", g.TestVote).
 			Methods("POST", "OPTIONS")
 		fmt.Printf("Starting webapp on address http://127.0.0.1:%s\n", g.GuiPort)
 
@@ -479,7 +483,7 @@ func (g *Gossiper) EndVote(w http.ResponseWriter, r *http.Request) {
 	g.AckPost(true, w)
 }
 
-func (g *Gossiper) Auth(w http.ResponseWriter, r *http.Request) {
+func (g *Gossiper) Authenticate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		panic("Wrong Methods")
 	}
@@ -492,7 +496,53 @@ func (g *Gossiper) Auth(w http.ResponseWriter, r *http.Request) {
 
 	auth := receivedAuth.Auth
 
+	// Start gossiper's authentication
+	g.StartAuthentication(auth)
+	fmt.Printf("START AUTHENTICATION WITH SECRET %s\n", auth)
 	fmt.Println(auth)
+	g.AckPost(true, w)
+}
+
+func (g *Gossiper) HandleGetBlockchain(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		panic("Wrong Methods")
+	}
+
+	var blocks struct {
+		Blocks []string `json:"blocks"`
+	}
+
+	// Get blockchain records 
+	blocksHolder := make([]string, 0)
+	for _, bc := range g.Blockchains {
+		bc.BlockMux.Lock()
+		blocksHolder = append(blocksHolder, bc.Records...)
+		bc.BlockMux.Unlock()
+	}
+
+	// Write to response
+	blocks.Blocks = blocksHolder
+
+	json.NewEncoder(w).Encode(blocks)
+}
+
+func (g *Gossiper) TestVote(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		panic("Wrong Methods")
+	}
+
+	// Get proposal
+	var proposal struct {
+		ElectionName string `json:"election"`
+		Voter string		`json:"voter"`
+	}
+	json.NewDecoder(r.Body).Decode(&proposal)
+
+	// Propose vote
+	vote := "trivial"
+	bc := g.GetOrCreateBlockchain(proposal.ElectionName)
+	v := bc.CreateBallot(proposal.Voter, vote, proposal.ElectionName)
+	go g.HandleReceivingVote(v)
 
 	g.AckPost(true, w)
 }
