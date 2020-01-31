@@ -1,5 +1,6 @@
 package gossiper
 
+// Implemented by Liangwei and Fengyu
 import (
 	"bytes"
 	"crypto/sha256"

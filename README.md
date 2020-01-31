@@ -6,6 +6,8 @@
 
 ### ! Before reading the code, we suggest to have a look on presentation slides first.
 
+### ! If any problem to run the code, please contact Fengyu Cai (fengyu.cai@epfl.ch) or Liangwei Chen (liangwei.chen@epfl.ch)
+
 ### System roles:
 - There are four roles in our system:
 	- Voter:
@@ -28,7 +30,7 @@
 ### Code Structure
 ```
 .
-├── Peerster/					# Contain the code                   
+├── Peerster/					# Peerster                 
 ├── client.go              # voter entry
 ├── voter/                 # supporting code for voter
 ├── indServer.go            # Independent Server
@@ -133,6 +135,7 @@
 	```
 
 - Quite complicated, right? We have offer you the script `server.sh`, the same config as the demo video. Enjoy!
+- We also provide the code to clean all the unnecessary code, and just keep the source. Please run `sh clean.sh`.
 
 
 ### Note

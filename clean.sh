@@ -27,4 +27,4 @@ rm -rf web/frontend/node_modules/
 rm -rf web/peerster/node_modules/
 rm -rf web/indserver/node_modules/
 
-# zip -9 -r --exclude=*.git/*  foo.zip .
+zip -9 -r --exclude=*.git/*  Cai_Fengyu_ProjectCode.zip .

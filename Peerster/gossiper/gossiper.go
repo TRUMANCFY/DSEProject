@@ -48,10 +48,9 @@ type Gossiper struct {
 	AckAll             bool
 	MsgBuffer          MsgBuffer
 	// Stuff for Que sera consensus
-	Rand       func() int64 // Function to generate random ticket for QSC
-	QSCMessage QSCMessage   // QSC Message holder
-	Acks       int          // Number of acks for QSC proposal
-	Wits       int          // Number of threshold witnessed messages
+	Rand func() int64 // Function to generate random ticket for QSC
+	Acks int          // NOT USED Number of acks for QSC proposal
+	Wits int          // NOT USED Number of threshold witnessed messages
 
 	// Stuff for blockchain
 	Blockchains       map[string]*Blockchain

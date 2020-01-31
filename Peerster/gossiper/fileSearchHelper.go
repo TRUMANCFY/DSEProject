@@ -1,8 +1,10 @@
 package gossiper
 
+// Not used in project
 import (
 	"fmt"
 	"strings"
+
 	"github.com/TRUMANCFY/DSEProject/Peerster/message"
 )
 
@@ -12,15 +14,15 @@ func (g *Gossiper) TriggerSearch() {
 
 		for request := range g.FileSharer.Searcher.SendCh {
 			/*
-			target_addr, ok := g.SelectRandomPeer([]string{}, 1)
-			if !ok { return }
-			request.Origin = g.Name
-			g.N.Send(&message.GossipPacket{
-				SearchRequest: request,
-			}, target_addr[0])
-			fmt.Printf("SENDING REQUEST FOR %s with budget %d\n", strings.Join(request.Keywords, ","), request.Budget)
+				target_addr, ok := g.SelectRandomPeer([]string{}, 1)
+				if !ok { return }
+				request.Origin = g.Name
+				g.N.Send(&message.GossipPacket{
+					SearchRequest: request,
+				}, target_addr[0])
+				fmt.Printf("SENDING REQUEST FOR %s with budget %d\n", strings.Join(request.Keywords, ","), request.Budget)
 			*/
-			
+
 			rand_peer_slice, ok := g.SelectRandomPeer([]string{},
 				int(request.Budget))
 			if !ok {
@@ -33,14 +35,14 @@ func (g *Gossiper) TriggerSearch() {
 			if len(rand_peer_slice) == budget {
 
 				for _, peer := range rand_peer_slice {
-					
+
 					g.N.Send(&message.GossipPacket{
 						SearchRequest: &message.SearchRequest{
 							Origin:   g.Name,
 							Budget:   uint64(1),
 							Keywords: request.Keywords,
 						},
-					}, peer)			
+					}, peer)
 					fmt.Printf("SENDING REQUEST FOR %s with budget %d\n", strings.Join(request.Keywords, ","), 1)
 
 				}
@@ -66,11 +68,10 @@ func (g *Gossiper) TriggerSearch() {
 					fmt.Printf("SENDING REQUEST FOR %s with budget %d\n", strings.Join(request.Keywords, ","), budget_to_send)
 				}
 			}
-			
+
 		}
 	}()
 }
-
 
 func (g *Gossiper) DistributeSearch() {
 	// Distribute the request to neighbours apart from replayer evenly

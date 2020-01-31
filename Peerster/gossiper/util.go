@@ -1,5 +1,6 @@
 package gossiper
 
+// Implemented by Liangwei
 import (
 	"crypto/aes"
 	"crypto/cipher"

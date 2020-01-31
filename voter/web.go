@@ -1,6 +1,6 @@
 package voter
 
-// implemented by Fengyu
+// Implemented by Fengyu
 
 import (
 	"bytes"

@@ -1,20 +1,23 @@
 package main
 
+// Implemented by Liangwei
+// It is not used in the GUI test
+// however, can be used in command line test for blockchain
 import (
-	"fmt"
+	"encoding/hex"
 	"flag"
+	"fmt"
 	"net"
 	"os"
 	"strings"
-	"encoding/hex"
-	"github.com/dedis/protobuf"
-	"github.com/TRUMANCFY/DSEProjectPeerster/message"
-)
 
+	"github.com/TRUMANCFY/DSEProject/Peerster/message"
+	"github.com/dedis/protobuf"
+)
 
 /* Struct definition */
 func input() (UIPort string, msg string, dest string, file, request, keywords string, budget int,
-				voterid, vote, electionName string) {
+	voterid, vote, electionName string) {
 
 	// Set cmd flag value containers
 	flag.StringVar(&UIPort, "UIPort", "8080", "UI port number")
@@ -53,14 +56,14 @@ func main() {
 	case msg != "" && dest == "" && file == "" && request == "" && keywords == "": // Gossip msg
 	case msg == "" && dest == "" && file == "" && request == "" && keywords != "" && budget > 0: // Search file instruction
 	case msg == "" && dest == "" && file != "" && request != "" && keywords == "": // Download searched file instruction?
-	case voterid != "" && vote != "" && electionName != "":							// Blockchain
+	case voterid != "" && vote != "" && electionName != "": // Blockchain
 	default:
 		fmt.Printf("ERROR (Bad argument combination)")
 		os.Exit(1)
 	}
 
 	// Create dst address
-	dst_addr, _ := net.ResolveUDPAddr("udp4", ":" + UIPort)
+	dst_addr, _ := net.ResolveUDPAddr("udp4", ":"+UIPort)
 
 	// Create UDP 'connection'
 	conn, _ := net.DialUDP("udp4", nil, dst_addr)
@@ -70,7 +73,7 @@ func main() {
 	// Create a gossiper msg
 	var destPtr, filePtr *string
 	var requestPtr *[]byte
-	if dest == ""{
+	if dest == "" {
 		destPtr = nil
 	} else {
 		destPtr = &dest
@@ -89,7 +92,7 @@ func main() {
 		// fmt.Println(err)
 		fmt.Printf("ERROR (Unable to decode hex hash)")
 		os.Exit(1)
-		
+
 	}
 	// fmt.Println(len(requestBytes))
 	if request == "" {
@@ -108,15 +111,15 @@ func main() {
 	fmt.Printf("Keywords are %s\n", strings.Join(keyword_slice, ","))
 	fmt.Printf("Voterid %s Vote %s\n", voterid, vote)
 	pkt := &message.Message{
-		Text : msg,
-		Destination : destPtr,
-		File : filePtr,
-		Request : requestPtr,
-		Keywords : keyword_slice,
-		Budget : uint64(budget),
-		Voterid : voterid,
-		Vote : vote,
-		ElectionName : electionName,
+		Text:         msg,
+		Destination:  destPtr,
+		File:         filePtr,
+		Request:      requestPtr,
+		Keywords:     keyword_slice,
+		Budget:       uint64(budget),
+		Voterid:      voterid,
+		Vote:         vote,
+		ElectionName: electionName,
 	}
 
 	// Encode the msg
