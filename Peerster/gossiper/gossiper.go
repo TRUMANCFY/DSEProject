@@ -83,9 +83,11 @@ func (gossiper *Gossiper) StartWorking() {
 	gossiper.StartSearching()
 
 	// Start antiEntropy sending
-	if !gossiper.Simple {
-		gossiper.StartAntiEntropy()
-	}
+	/*
+		if !gossiper.Simple {
+			gossiper.StartAntiEntropy()
+		}
+	*/
 
 	// Start routing
 	gossiper.Dsdv.StartRouting()
@@ -136,7 +138,7 @@ func (gossiper *Gossiper) StartHandling() {
 			case pkt.Packet.Rumor != nil:
 				// Handle rumor message
 				// Update peers
-				gossiper.UpdatePeers(pkt.Sender)
+				// gossiper.UpdatePeers(pkt.Sender)
 				// Print peers
 				// gossiper.PrintPeers()
 				go gossiper.HandleRumor(pkt)

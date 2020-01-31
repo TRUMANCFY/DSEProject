@@ -1,3 +1,5 @@
+// implemented by Fengyu
+
 package voter
 
 import (

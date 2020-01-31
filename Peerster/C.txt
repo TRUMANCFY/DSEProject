@@ -4,10 +4,131 @@ start authentiation
 G IS a3aa4348e3116a0c9631562c2590604e404235eda1c9b91375ba0263daa11c49
 START AUTHENTICATION WITH SECRET XVlBzgbaiCMRAjWwhTHctcuAxhxKQFDa
 XVlBzgbaiCMRAjWwhTHctcuAxhxKQFDa
+Election1
+12806191840854698462909089099636243928063847582369734184190200372229
+&{[] 0xc0001bc760   http://127.0.0.1:8002/partialkey }
+[0xc0001d6870 0xc0001d6900]
+Receiving packet!!!
+{[]  0xc000084780 Election10 0 0}
+GET VOTE FROM 0 VOTING FOR Election10 
+RECEVING BLOCKS
+Election1 BUFFERING VOTER 0
+	 THE RECORD TO BE PROPOSED HAS VOTERID 0
+SENDING SENDING SENDING
+OBTAIN RUMOR LOCK
+check point 0
+Receiving packet!!!
+RECEVING BLOCKS
+check point 1
+check point 2
+check point 3
+OBTAIN STATUS LOCK
+	 PROPOSING BLOCK WITH VOTER 0 VOTE Election10 IN ROUND 1 FOR ELECTION Election1
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 0 VOTING Election10 IN ELECTION Election1 FOR ROUND 1 FROM PEER A
+	 RECEIVED 2 proposals
+Receiving packet!!!
+PROVIDING
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 0 VOTING Election10 IN ELECTION Election1 FOR ROUND 1 FROM PEER B
+	 RECEIVED 3 proposals
+	    APPENDING BLOCK WITH VOTER UID 0, VOTE HASH Election10 FOR ELECTION Election1
+	 ENTERING ROUND 2 FOR ELECTION Election1
+
+Receiving packet!!!
+PROVIDING
+Receiving packet!!!
+Receiving packet!!!
+PROVIDING
+PROVIDING
+Receiving packet!!!
+Receiving packet!!!
+RECEVING BLOCKS
+Receiving packet!!!
+Correct proofReceiving packet!!!
+Receiving packet!!!
+Receiving packet!!!
+{[]  0xc000084d00 Election11 1 1}
+GET VOTE FROM 1 VOTING FOR Election11 
+Election1 BUFFERING VOTER 1
+Receiving packet!!!
+RECEVING BLOCKS
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 1 VOTING Election11 IN ELECTION Election1 FOR ROUND 2 FROM PEER A
+Receiving packet!!!
+RECEVING BLOCKS
+Receiving packet!!!
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 1 VOTING Election11 IN ELECTION Election1 FOR ROUND 2 FROM PEER B
+REQUESTING
+	 THE RECORD TO BE PROPOSED HAS VOTERID 1
+	 RECEIVED 2 proposals
+	 RECEIVED 3 proposals
+	    APPENDING BLOCK WITH VOTER UID 1, VOTE HASH Election11 FOR ELECTION Election1
+	 ENTERING ROUND 3 FOR ELECTION Election1
+
+SENDING SENDING SENDING
+OBTAIN RUMOR LOCK
+check point 0
+check point 1
+check point 2
+check point 3
+OBTAIN STATUS LOCK
+	 PROPOSING BLOCK WITH VOTER 1 VOTE Election11 IN ROUND 2 FOR ELECTION Election1
+Receiving packet!!!
+RECEVING BLOCKS
+Correct proofReceiving packet!!!
+PROVIDING
 Receiving packet!!!
 Receiving packet!!!
 Receiving packet!!!
+RECEVING BLOCKS
+Correct proofReceiving packet!!!
+RECEVING BLOCKS
+Receiving packet!!!
+Correct proofReceiving packet!!!
+Receiving packet!!!
+RECEVING BLOCKS
+Receiving packet!!!
+RECEVING BLOCKS
+Receiving packet!!!
+Correct proofCorrect proof{[]  0xc00028a240 Election12 2 2}
+GET VOTE FROM 2 VOTING FOR Election12 
+Election1 BUFFERING VOTER 2
+	 THE RECORD TO BE PROPOSED HAS VOTERID 2
+SENDING SENDING SENDING
+OBTAIN RUMOR LOCK
+check point 0
+check point 1
+check point 2
+check point 3
+OBTAIN STATUS LOCK
+	 PROPOSING BLOCK WITH VOTER 2 VOTE Election12 IN ROUND 3 FOR ELECTION Election1
+Receiving packet!!!
+RECEVING BLOCKS
+Correct proofReceiving packet!!!
 Receiving packet!!!
 Receiving packet!!!
+RECEVING BLOCKS
+RECEVING BLOCKS
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 2 VOTING Election12 IN ELECTION Election1 FOR ROUND 3 FROM PEER A
+	 RECEIVED 2 proposals
 Receiving packet!!!
+RECEVING BLOCKS
+Correct proof	 ACCEPT RECEVING BLOCK VOTER 2 VOTING Election12 IN ELECTION Election1 FOR ROUND 3 FROM PEER B
+	 RECEIVED 3 proposals
+	    APPENDING BLOCK WITH VOTER UID 2, VOTE HASH Election12 FOR ELECTION Election1
+	 ENTERING ROUND 4 FOR ELECTION Election1
+
+Correct proofReceiving packet!!!
+RECEVING BLOCKS
+Correct proofReceiving packet!!!
+RECEVING BLOCKS
 Receiving packet!!!
+RECEVING BLOCKS
+Correct proofCorrect proofReceiving packet!!!
+Receiving packet!!!
+RECEVING BLOCKS
+Correct proof++++++++++++++
+Election1
+[0xc000086660 0xc0001883c0 0xc0000a8180]
+[0xc000086660 0xc0001883c0 0xc0000a8180]
+{0xc0000863c0 [0xc000086660 0xc0001883c0 0xc0000a8180] 8002 {[]  https://example.com  2020-01-31 10:20:16.678579 +0100 CET m=+108.687651064 Election1 false 0xc0001bc800 [0xc0001d6870 0xc0001d6900] Fake false 52e31675-5a2b-48df-b20c-0e111b61c7a7 Fake hash 2020-01-31 10:20:16.678666 +0100 CET m=+108.687738441 2020-01-31 10:20:16.678667 +0100 CET m=+108.687739416 14646348118765069404209328865800750913621750362693050556277824986218 [0xc000086420 0xc000086480 0xc0000864e0]}}
+&{200 OK 200 HTTP/1.1 1 1 map[Content-Length:[0] Date:[Fri, 31 Jan 2020 09:20:44 GMT]] {} 0 [] false false map[] 0xc0003b6300 <nil>}
+struct has no serializable fields (field abs) (field Alpha) (field Choices) (field Answers) (field Vote) (field CastBallot) (field Block) (field BlockRumorMessage)

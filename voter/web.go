@@ -1,5 +1,7 @@
 package voter
 
+// implemented by Fengyu
+
 import (
 	"bytes"
 	"encoding/json"

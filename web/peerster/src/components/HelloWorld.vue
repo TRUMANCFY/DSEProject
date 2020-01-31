@@ -1,4 +1,6 @@
-  <template>
+<!-- Implemented by Fengyu -->
+
+<template>
   <div class="hello">
     <b-container class="bv-example-row">
   <b-row>
@@ -109,6 +111,7 @@ export default {
       if (self.errMsg.length != errorFilter.length) {
         self.errMsg = errorFilter;
         self.errStr = self.errMsg.join('\n')
+        //self.errStr = self.errMsg[0];
       }
 
     }

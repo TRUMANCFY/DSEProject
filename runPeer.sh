@@ -11,4 +11,4 @@ sleep 2
 
 ./Peerster -name D -N 3 -gossipAddr 127.0.0.1:5003 -UIPort 7083 -GuiPort 8003 -peers 127.0.0.1:5000,127.0.0.1:5001 > D.txt &
 
-sleep 500
+sleep 1000

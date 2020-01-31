@@ -9,17 +9,21 @@ kill -9 $(lsof -i:8078 -t)
 
 # compile the frontend
 cd web/frontend/
+npm i
 npm run build
 
 cd ../indserver/
+npm i
 npm run build
 
 cd ../peerster/
+npm i
 npm run build
 
 cd ../backend/
 rm election.json
 rm vote.json
+# rm users.json
 python server.py > pyserver.txt &
 
 cd ../../

@@ -1,3 +1,5 @@
+<!-- Implemented by Fengyu -->
+
 <template>
     <div>
         <h2> Create Election </h2>
@@ -52,6 +54,9 @@
 </template>
 
 <script>
+// implemented by Fengyu
+
+
 import { mapState, mapActions } from 'vuex'
 import config from 'config'
 

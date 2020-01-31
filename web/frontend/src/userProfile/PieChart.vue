@@ -1,3 +1,5 @@
+<!-- Implemented by Fengyu -->
+
 <script>
 import { Pie } from 'vue-chartjs'
 

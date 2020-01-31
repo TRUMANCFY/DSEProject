@@ -1,3 +1,5 @@
+<!-- Implemented by Fengyu -->
+
 <template>
     <div>
         <p> Name: {{ electionName }} </p>
@@ -17,6 +19,7 @@
 </template>
 
 <script>
+// implemented by Fengyu
 import { mapState, mapActions } from 'vuex'
 
 import config from 'config'

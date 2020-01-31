@@ -1,3 +1,5 @@
+// implemented by Fengyu
+
 package main
 
 import (
@@ -143,9 +145,6 @@ func (t *Tally) ListenToGui() {
 
 func main() {
 	res := make(map[string]message.Result)
-	res["test"] = make([][]int64, 0)
-	res["test"] = append(res["test"], []int64{2, 0})
-	res["test"] = append(res["test"], []int64{2, 5})
 
 	t := Tally{
 		Record: make(map[string](map[string]TallyContainer)),
