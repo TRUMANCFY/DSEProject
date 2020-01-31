@@ -18,6 +18,7 @@ type Blockchain struct {
 	// Blocks
 	Blocks   []*message.Block
 	BlockMux sync.Mutex
+
 	// Number of Peers
 	N int
 
@@ -25,7 +26,8 @@ type Blockchain struct {
 	NextId int
 
 	// Buffer of ballot to be added into blockchain
-	Buffer []*message.CastBallot
+	Buffer    []*message.CastBallot
+	BufferMux sync.Mutex
 
 	// Input channel for buffer
 	InputCh chan *message.CastBallot
@@ -36,9 +38,6 @@ type Blockchain struct {
 	// Receive channel for candidate blocks
 	ReceiveCh chan *message.Block
 
-	// Mutexes for concurrent access of channels and buffers
-	BufferMux sync.Mutex
-
 	// Origin
 	Origin string
 
@@ -47,7 +46,7 @@ type Blockchain struct {
 	MapMux sync.Mutex
 
 	// Voter map
-	VoterMap    map[string]bool
+	VoterMap    map[string]string
 	VoterMapMux sync.Mutex
 
 	// Election Name
@@ -81,17 +80,11 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 		N:            g.NumPeers,
 		Origin:       g.Name,
 		Map:          make(map[string]map[int]bool),
-		VoterMap:     make(map[string]bool),
+		VoterMap:     make(map[string]string),
 		ElectionName: electionName,
 		Records:      make([]string, 0),
 	}
 
-	// For testing purpose
-	if electionName == "China" {
-		bc.Prefix = "\t\t"
-	} else {
-		bc.Prefix = "\t"
-	}
 	// Add genesis block
 	genesisBlock := &message.Block{
 		PrevHash:     sha256.Sum256(make([]byte, 0)),
@@ -108,6 +101,7 @@ func (g *Gossiper) NewBlockchain(electionName string) (bc *Blockchain) {
 	seedHash := sha256.Sum256([]byte(g.Name))
 	seed := binary.BigEndian.Uint64(seedHash[:])
 	rand.Seed(int64(seed))
+
 	// Start working
 	go bc.HandleRound()
 	return
@@ -124,15 +118,16 @@ func (bc *Blockchain) HandleRound() {
 	/*
 		This function handle rounds of adding blocks into the blockchain
 	*/
+
 	voters := make(map[string]bool)
 	for {
 		bc.BufferMux.Lock()
 		if len(bc.Buffer) > 0 {
 			// Get the first Vote that has not been recorded in the blockchain to propagate
-
 			var currentVote *message.CastBallot
 			nextBufferIndex := 0
 			var valid bool
+
 			// Check whether there is valid vote to propogate
 			for _, currentVote = range bc.Buffer {
 				valid = true
@@ -157,8 +152,8 @@ func (bc *Blockchain) HandleRound() {
 				continue
 			}
 			bc.BufferMux.Unlock()
-
 			fmt.Printf("%s THE RECORD TO BE PROPOSED HAS VOTERID %s\n", bc.Prefix, currentVote.VoterUuid)
+
 			// Create the block
 			currentBlock := &message.Block{
 				CastBallot:   currentVote,
@@ -178,9 +173,7 @@ func (bc *Blockchain) HandleRound() {
 			// fmt.Printf("OUR FITNESS IS %d\n", currentBlock.Fitness)
 			receivedMap := make(map[string]bool)
 			for {
-				// Check validity of proposal, here we actually don't need to as
-				// all peers are trusted
-				// Update self's block if peer's block has higher fitness value
+				// Update self's block if peer's block is valid and has higher fitness value
 				peerBlock := <-bc.ReceiveCh
 				if _, ok := receivedMap[peerBlock.Origin]; !ok {
 					receivedMap[peerBlock.Origin] = true
@@ -258,6 +251,7 @@ func (g *Gossiper) GetOrCreateBlockchain(electionName string) (bc *Blockchain) {
 	g.BlockchainsMux.Unlock()
 	return
 }
+
 func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 	/*
 		This func receives blocks from underlying blockchain layer
@@ -265,11 +259,8 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 	*/
 
 	for block := range sendCh {
-		fmt.Println("SENDING SENDING SENDING")
 		// Construct msg to be sent
 		g.RumorBuffer.Mux.Lock()
-		fmt.Println("OBTAIN RUMOR LOCK")
-
 		var proof *message.Proof
 
 		if g.Auth == nil {
@@ -290,6 +281,7 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 		// Store msg
 		g.RumorBuffer.Rumors[g.Name] = append(g.RumorBuffer.Rumors[g.Name], wrappedMessage)
 		g.RumorBuffer.Mux.Unlock()
+
 		// Update status
 		g.StatusBuffer.Mux.Lock()
 		fmt.Println("OBTAIN STATUS LOCK")
@@ -303,14 +295,7 @@ func (g *Gossiper) HandleSendingBlocks(sendCh chan *message.Block) {
 		g.StatusBuffer.Mux.Unlock()
 
 		// Monger block
-		var prefix string
-		if block.ElectionName == "China" {
-			prefix = "\t\t"
-		} else {
-			prefix = "\t"
-		}
-		fmt.Printf("%s PROPOSING BLOCK WITH VOTER %s VOTE %s IN ROUND %d FOR ELECTION %s\n",
-			prefix,
+		fmt.Printf("PROPOSING BLOCK WITH VOTER %s VOTE %s IN ROUND %d FOR ELECTION %s\n",
 			block.CastBallot.VoterUuid,
 			block.CastBallot.VoteHash,
 			block.Round,
@@ -332,7 +317,6 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	sender, blockRumor := wrapped_pkt.Sender, wrapped_pkt.Packet.BlockRumorMessage
 
 	/* Step 0 */
-
 	if g.Auth != nil {
 		valid := g.Auth.Verify(blockRumor.Proof)
 		if !valid {
@@ -345,20 +329,6 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 	b := blockRumor.Block
 	// Get or Create the corresponding blockchain
 	bc := g.GetOrCreateBlockchain(b.ElectionName)
-
-	// prefix := ""
-	// if b.ElectionName == "China" {
-	// 	prefix = "\t\t"
-	// } else {
-	// 	prefix = "\t"
-	// }
-	// fmt.Printf("%s NETWORK RECEVING BLOCK VOTER %s VOTING %s IN ELECTION %s FOR ROUND %d FROM PEER %s\n",
-	// 	prefix,
-	// 	b.CastBallot.VoterUuid,
-	// 	b.CastBallot.VoteHash,
-	// 	b.ElectionName,
-	// 	b.Round,
-	// 	b.Origin)
 
 	// Reject block from future
 	if b.Round > bc.NextId {
@@ -395,15 +365,7 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 			return
 		}
 
-		var prefix string
-		if b.ElectionName == "China" {
-			prefix = "\t\t"
-		} else {
-			prefix = "\t"
-		}
-
-		fmt.Printf("%s ACCEPT RECEVING BLOCK VOTER %s VOTING %s IN ELECTION %s FOR ROUND %d FROM PEER %s\n",
-			prefix,
+		fmt.Printf("ACCEPT RECEVING BLOCK VOTER %s VOTING %s IN ELECTION %s FOR ROUND %d FROM PEER %s\n",
 			b.CastBallot.VoterUuid,
 			b.CastBallot.VoteHash,
 			b.ElectionName,
@@ -414,9 +376,14 @@ func (g *Gossiper) HandleReceivingBlock(wrapped_pkt *message.PacketIncome) {
 		bc.VoterMapMux.Lock()
 		var existed bool
 		if _, ok := bc.VoterMap[b.CastBallot.VoterUuid]; !ok {
-			bc.VoterMap[b.CastBallot.VoterUuid] = true
+			bc.VoterMap[b.CastBallot.VoterUuid] = b.CastBallot.VoteHash
 			existed = false
 		} else {
+			if bc.VoterMap[b.CastBallot.VoterUuid] != b.CastBallot.VoteHash {
+				// Find conflicting record for the same voter
+				fmt.Printf("ERROR: RECEIVE CONFLICTING VOTE FOR VOTER %s\n", b.CastBallot.VoterUuid)
+				g.LogConflict(b.CastBallot.VoterUuid)
+			}
 			existed = true
 		}
 		bc.VoterMapMux.Unlock()
@@ -493,11 +460,12 @@ func (g *Gossiper) LogAttack(blockRumor *message.BlockRumorMessage) {
 	g.BlockAttackLog = append(g.BlockAttackLog, errorString)
 }
 
-func (g *Gossiper) TerminateElection() {
+func (g *Gossiper) LogConflict(voter string) (errorString string) {
 	/*
-		This function is triggered after receiving terminating signal for an election
-		Step 1. Return the castBallots
-		Step 2. Terminate the channels
-		Step 3. Terminate blockchain
+		This func log the conflict of voter record
 	*/
+
+	errorPrefix := "ERROR: "
+	errorString = fmt.Sprintf("%s RECEIVE CONFLICT VOTE FOR VOTER %s\n", errorPrefix, voter)
+	return
 }
