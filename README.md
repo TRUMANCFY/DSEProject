@@ -6,7 +6,7 @@
 
 ### ! Before reading the code, we suggest to have a look on presentation slides first.
 
-### ! If any problem to run the code, please contact Fengyu Cai (fengyu.cai@epfl.ch) or Liangwei Chen (liangwei.chen@epfl.ch)
+### ! If you may encounter any problem to run the code, please contact Fengyu Cai (fengyu.cai@epfl.ch) or Liangwei Chen (liangwei.chen@epfl.ch)
 
 ### System roles:
 - There are four roles in our system:
@@ -31,11 +31,12 @@
 ```
 .
 ├── Peerster/               # Peerster (Trustee with blockchain)    
-├── client.go               # voter entry
-├── voter/                  # supporting code for voter
+├── client.go               # Voter entry
+├── voter/                  # Supporting code for voter
 ├── indServer.go            # Independent Server
 ├── tally.go                # Tallier    
-├── server.sh               # Run the program             
+├── server.sh               # Run the program 
+├── doc/ 		    # The report of the project
 └── web/                    # Frontend and Backend
 │  ├── frontend/src         # Frontend code for the voter
 │  ├── backend/server.py    # User management backend
