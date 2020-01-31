@@ -20,7 +20,7 @@
 		- collect the partial decrypted vote 
 		- tally the result
 	- Independent server:
-		- send the authentication secret to Peetster
+		- send the authentication secret to Peerster
 		- generate public key
 		- distribute partial private keys to the servers
 - What is more, we need frontends to provide user interface in the framework of Vue, and also a light-weighted backend in the framework of Flask and database to support for the user management.
@@ -146,6 +146,10 @@
 - ElGamal, T. A public key cryptosystem and a signature scheme based on discrete logarithms. In Advances in Cryptology, Proceedings of CRYPTO '84. G. Blakley and D. Chaum (Eds.). Springer, Berlin Heidelberg, 1985, 10--18.
 
 - M. Blum, P. Feldman, S. Micali, "Non-interactive zero-knowledge and its applications", Proc. 20th Annu. ACM Symp. Theory Comput. (STOC’88), pp. 103-112, May 1988.
+
+- Vue user management framework https://github.com/cornflourblue/vue-vuex-registration-login-example
+
+- Helios https://github.com/google/pyrios
 
 
 ### Lisence
