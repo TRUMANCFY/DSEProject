@@ -4,7 +4,7 @@
 
 ### Author: Fengyu Cai, Liangwei Chen, Ali EI Abridi
 
-### ! Before reading the code, we suggest to have a look on presentation slides first.
+### ! Before reading the code, we suggest to have a look on presentation slides first and [demo](https://youtu.be/PgF8w0PYA6E)
 
 ### ! If you may encounter any problem to run the code, please contact Fengyu Cai (fengyu.cai@epfl.ch) or Liangwei Chen (liangwei.chen@epfl.ch)
 
@@ -36,7 +36,7 @@
 ├── indServer.go            # Independent Server
 ├── tally.go                # Tallier    
 ├── server.sh               # Run the program 
-├── doc/ 		    # The report of the project
+├── doc/ 		            # The report and slides of the project
 └── web/                    # Frontend and Backend
 │  ├── frontend/src         # Frontend code for the voter
 │  ├── backend/server.py    # User management backend
