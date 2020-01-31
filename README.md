@@ -30,17 +30,17 @@
 ### Code Structure
 ```
 .
-├── Peerster/					# Peerster                 
-├── client.go              # voter entry
-├── voter/                 # supporting code for voter
+├── Peerster/               # Peerster (Trustee with blockchain)    
+├── client.go               # voter entry
+├── voter/                  # supporting code for voter
 ├── indServer.go            # Independent Server
-├── tally.go               # Tallier    
-├── server.sh              # Run the program             
+├── tally.go                # Tallier    
+├── server.sh               # Run the program             
 └── web/                    # Frontend and Backend
-│  ├── frontend/          	 # Frontend code for the voter
-│  ├── backend/				 # User management backend
-   ├── indServer/
-│  └── peerster/
+│  ├── frontend/src         # Frontend code for the voter
+│  ├── backend/server.py    # User management backend
+   ├── indServer/src        # Independent server
+│  └── peerster/src         # Frontend of the peerster
 └── ...
 
 ```
